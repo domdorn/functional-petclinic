@@ -20,13 +20,22 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.Type;
+import org.jspecify.annotations.Nullable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.samples.petclinic.model.NamedEntity;
+
+import dev.zazr.control.Option;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -45,6 +54,12 @@ import jakarta.persistence.Table;
 @Table(name = "pets")
 public class Pet extends NamedEntity {
 
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id")
+	@Type(PetIdType.class)
+	private @Nullable PetId id;
+
 	@Column
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	private LocalDate birthDate;
@@ -54,6 +69,9 @@ public class Pet extends NamedEntity {
 	private PetType type;
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	// SUBSELECT avoids a multi-key SQL-array load keyed by the typed PetId when several
+	// pets are loaded, which the PostgreSQL array binder cannot unwrap (see gotchas.md).
+	@Fetch(FetchMode.SUBSELECT)
 	@JoinColumn(name = "pet_id")
 	@OrderBy("date ASC")
 	private final Set<Visit> visits = new LinkedHashSet<>();
@@ -80,6 +98,26 @@ public class Pet extends NamedEntity {
 
 	public void addVisit(Visit visit) {
 		getVisits().add(visit);
+	}
+
+	/**
+	 * The typed identity of this pet, or empty when it has not been persisted yet.
+	 * @return an {@link Option} of {@link PetId}
+	 */
+	public Option<PetId> petId() {
+		return Option.ofNullable(this.id);
+	}
+
+	public @Nullable PetId getId() {
+		return this.id;
+	}
+
+	public void setId(PetId id) {
+		this.id = id;
+	}
+
+	public boolean isNew() {
+		return this.id == null;
 	}
 
 }

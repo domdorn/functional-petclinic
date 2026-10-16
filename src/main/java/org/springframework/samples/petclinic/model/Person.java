@@ -15,6 +15,8 @@
  */
 package org.springframework.samples.petclinic.model;
 
+import java.io.Serializable;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.validation.constraints.NotBlank;
@@ -26,7 +28,7 @@ import jakarta.validation.constraints.Size;
  * @author Ken Krebs
  */
 @MappedSuperclass
-public class Person extends BaseEntity {
+public class Person implements Serializable {
 
 	@Column(length = 30)
 	@Size(max = 30)

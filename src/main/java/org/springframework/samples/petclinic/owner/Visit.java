@@ -15,13 +15,20 @@
  */
 package org.springframework.samples.petclinic.owner;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
+import org.hibernate.annotations.Type;
+import org.jspecify.annotations.Nullable;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.samples.petclinic.model.BaseEntity;
+
+import dev.zazr.control.Option;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -34,7 +41,13 @@ import jakarta.validation.constraints.Size;
  */
 @Entity
 @Table(name = "visits")
-public class Visit extends BaseEntity {
+public class Visit implements Serializable {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id")
+	@Type(VisitIdType.class)
+	private @Nullable VisitId id;
 
 	@Column(name = "visit_date")
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
@@ -49,6 +62,26 @@ public class Visit extends BaseEntity {
 	 */
 	public Visit() {
 		this.date = LocalDate.now().plusDays(1);
+	}
+
+	/**
+	 * The typed identity of this visit, or empty when it has not been persisted yet.
+	 * @return an {@link Option} of {@link VisitId}
+	 */
+	public Option<VisitId> visitId() {
+		return Option.ofNullable(this.id);
+	}
+
+	public @Nullable VisitId getId() {
+		return this.id;
+	}
+
+	public void setId(VisitId id) {
+		this.id = id;
+	}
+
+	public boolean isNew() {
+		return this.id == null;
 	}
 
 	public LocalDate getDate() {

@@ -21,11 +21,21 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.Type;
+import org.jspecify.annotations.Nullable;
 import org.springframework.samples.petclinic.model.NamedEntity;
 import org.springframework.samples.petclinic.model.Person;
 
+import dev.zazr.control.Option;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
@@ -44,7 +54,16 @@ import jakarta.xml.bind.annotation.XmlElement;
 @Table(name = "vets")
 public class Vet extends Person {
 
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id")
+	@Type(VetIdType.class)
+	private @Nullable VetId id;
+
 	@ManyToMany(fetch = FetchType.EAGER)
+	// SUBSELECT avoids a multi-key SQL-array load keyed by the typed VetId, which the
+	// PostgreSQL array binder cannot unwrap (see gotchas.md).
+	@Fetch(FetchMode.SUBSELECT)
 	@JoinTable(name = "vet_specialties", joinColumns = @JoinColumn(name = "vet_id"),
 			inverseJoinColumns = @JoinColumn(name = "specialty_id"))
 	private Set<Specialty> specialties;
@@ -69,6 +88,26 @@ public class Vet extends Person {
 
 	public void addSpecialty(Specialty specialty) {
 		getSpecialtiesInternal().add(specialty);
+	}
+
+	/**
+	 * The typed identity of this vet, or empty when it has not been persisted yet.
+	 * @return an {@link Option} of {@link VetId}
+	 */
+	public Option<VetId> vetId() {
+		return Option.ofNullable(this.id);
+	}
+
+	public @Nullable VetId getId() {
+		return this.id;
+	}
+
+	public void setId(VetId id) {
+		this.id = id;
+	}
+
+	public boolean isNew() {
+		return this.id == null;
 	}
 
 }

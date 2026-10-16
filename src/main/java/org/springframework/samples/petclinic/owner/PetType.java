@@ -15,9 +15,17 @@
  */
 package org.springframework.samples.petclinic.owner;
 
+import org.hibernate.annotations.Type;
+import org.jspecify.annotations.Nullable;
 import org.springframework.samples.petclinic.model.NamedEntity;
 
+import dev.zazr.control.Option;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
@@ -26,5 +34,31 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "types")
 public class PetType extends NamedEntity {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id")
+	@Type(PetTypeIdType.class)
+	private @Nullable PetTypeId id;
+
+	/**
+	 * The typed identity of this pet type, or empty when it has not been persisted yet.
+	 * @return an {@link Option} of {@link PetTypeId}
+	 */
+	public Option<PetTypeId> petTypeId() {
+		return Option.ofNullable(this.id);
+	}
+
+	public @Nullable PetTypeId getId() {
+		return this.id;
+	}
+
+	public void setId(PetTypeId id) {
+		this.id = id;
+	}
+
+	public boolean isNew() {
+		return this.id == null;
+	}
 
 }

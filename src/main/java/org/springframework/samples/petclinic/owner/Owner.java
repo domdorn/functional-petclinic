@@ -19,14 +19,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.Type;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.samples.petclinic.model.Person;
 import org.springframework.util.Assert;
+
+import dev.zazr.control.Option;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
@@ -49,6 +58,12 @@ import jakarta.validation.constraints.Size;
 @Table(name = "owners")
 public class Owner extends Person {
 
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id")
+	@Type(OwnerIdType.class)
+	private @Nullable OwnerId id;
+
 	@Column
 	@NotBlank
 	@Size(max = 255)
@@ -65,6 +80,10 @@ public class Owner extends Person {
 	private String telephone;
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	// SUBSELECT avoids a multi-key SQL-array load keyed by the typed OwnerId when a list
+	// of owners is loaded, which the PostgreSQL array binder cannot unwrap (see
+	// gotchas.md).
+	@Fetch(FetchMode.SUBSELECT)
 	@JoinColumn(name = "owner_id")
 	@OrderBy("name")
 	private final List<Pet> pets = new ArrayList<>();
@@ -129,8 +148,8 @@ public class Owner extends Person {
 	public Pet getPet(Integer id) {
 		for (Pet pet : getPets()) {
 			if (!pet.isNew()) {
-				Integer compId = pet.getId();
-				if (Objects.equals(compId, id)) {
+				PetId compId = pet.getId();
+				if (compId != null && Objects.equals(compId.id(), id)) {
 					return pet;
 				}
 			}
@@ -183,6 +202,26 @@ public class Owner extends Person {
 		Assert.notNull(pet, "Invalid Pet identifier!");
 
 		pet.addVisit(visit);
+	}
+
+	/**
+	 * The typed identity of this owner, or empty when it has not been persisted yet.
+	 * @return an {@link Option} of {@link OwnerId}
+	 */
+	public Option<OwnerId> ownerId() {
+		return Option.ofNullable(this.id);
+	}
+
+	public @Nullable OwnerId getId() {
+		return this.id;
+	}
+
+	public void setId(OwnerId id) {
+		this.id = id;
+	}
+
+	public boolean isNew() {
+		return this.id == null;
 	}
 
 }
