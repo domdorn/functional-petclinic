@@ -18,11 +18,10 @@ package org.springframework.samples.petclinic.owner;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.Optional;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.samples.petclinic.functional.DomainError;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
@@ -37,6 +36,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import jakarta.validation.Valid;
 
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import dev.zazr.control.Either;
+import dev.zazr.control.Option;
 
 /**
  * @author Juergen Hoeller
@@ -65,25 +67,25 @@ class PetController {
 	}
 
 	@ModelAttribute("owner")
-	public Owner findOwner(@PathVariable("ownerId") int ownerId) {
-		Optional<Owner> optionalOwner = this.owners.findById(ownerId);
-		Owner owner = optionalOwner.orElseThrow(() -> new IllegalArgumentException(
-				"Owner not found with id: " + ownerId + ". Please ensure the ID is correct "));
-		return owner;
+	public Owner findOwner(@PathVariable("ownerId") OwnerId ownerId) {
+		// Non-throwing form-backing object; existence is enforced as a value by the
+		// handlers via requireOwner.
+		return this.owners.find(ownerId).getOrElse(Owner::new);
 	}
 
 	@ModelAttribute("pet")
-	public Pet findPet(@PathVariable("ownerId") int ownerId,
-			@PathVariable(name = "petId", required = false) Integer petId) {
+	public Pet findPet(@PathVariable("ownerId") OwnerId ownerId,
+			@PathVariable(name = "petId", required = false) Option<PetId> petId) {
+		return petId.flatMap(id -> this.owners.find(ownerId).flatMap(owner -> Option.ofNullable(owner.getPet(id.id()))))
+			.getOrElse(Pet::new);
+	}
 
-		if (petId == null) {
-			return new Pet();
-		}
+	private Either<DomainError, Owner> requireOwner(OwnerId ownerId) {
+		return this.owners.find(ownerId).<DomainError>toEither(() -> new OwnerNotFound(ownerId));
+	}
 
-		Optional<Owner> optionalOwner = this.owners.findById(ownerId);
-		Owner owner = optionalOwner.orElseThrow(() -> new IllegalArgumentException(
-				"Owner not found with id: " + ownerId + ". Please ensure the ID is correct "));
-		return owner.getPet(petId);
+	private Either<DomainError, Pet> requirePet(Owner owner, OwnerId ownerId, PetId petId) {
+		return Option.ofNullable(owner.getPet(petId.id())).<DomainError>toEither(() -> new PetNotFound(ownerId, petId));
 	}
 
 	@InitBinder("owner")
@@ -98,84 +100,90 @@ class PetController {
 	}
 
 	@GetMapping("/pets/new")
-	public String initCreationForm(Owner owner, ModelMap model) {
-		Pet pet = new Pet();
-		owner.addPet(pet);
-		return VIEWS_PETS_CREATE_OR_UPDATE_FORM;
+	public Either<DomainError, String> initCreationForm(@PathVariable("ownerId") OwnerId ownerId, Owner owner) {
+		return requireOwner(ownerId).map(ignored -> {
+			Pet pet = new Pet();
+			owner.addPet(pet);
+			return VIEWS_PETS_CREATE_OR_UPDATE_FORM;
+		});
 	}
 
 	@PostMapping("/pets/new")
-	public String processCreationForm(Owner owner, @Valid Pet pet, BindingResult result,
-			RedirectAttributes redirectAttributes) {
-
-		if (StringUtils.hasText(pet.getName()) && pet.isNew() && owner.getPet(pet.getName(), true) != null) {
-			result.rejectValue("name", "duplicate", "already exists");
-		}
-
-		LocalDate currentDate = LocalDate.now();
-		if (pet.getBirthDate() != null && pet.getBirthDate().isAfter(currentDate)) {
-			result.rejectValue("birthDate", "typeMismatch.birthDate");
-		}
-
-		if (result.hasErrors()) {
-			return VIEWS_PETS_CREATE_OR_UPDATE_FORM;
-		}
-
-		try {
-			owner.addPet(pet);
-			this.owners.saveAndFlush(owner);
-		}
-		catch (DataIntegrityViolationException ex) {
-			if (!isDuplicatePetNameViolation(ex)) {
-				throw ex;
+	public Either<DomainError, String> processCreationForm(@PathVariable("ownerId") OwnerId ownerId, Owner owner,
+			@Valid Pet pet, BindingResult result, RedirectAttributes redirectAttributes) {
+		return requireOwner(ownerId).map(ignored -> {
+			if (StringUtils.hasText(pet.getName()) && pet.isNew() && owner.getPet(pet.getName(), true) != null) {
+				result.rejectValue("name", "duplicate", "already exists");
 			}
-			result.rejectValue("name", "duplicate", "already exists");
-			return VIEWS_PETS_CREATE_OR_UPDATE_FORM;
-		}
-		redirectAttributes.addFlashAttribute("message", "New Pet has been Added");
-		return "redirect:/owners/{ownerId}";
+
+			LocalDate currentDate = LocalDate.now();
+			if (pet.getBirthDate() != null && pet.getBirthDate().isAfter(currentDate)) {
+				result.rejectValue("birthDate", "typeMismatch.birthDate");
+			}
+
+			if (result.hasErrors()) {
+				return VIEWS_PETS_CREATE_OR_UPDATE_FORM;
+			}
+
+			try {
+				owner.addPet(pet);
+				this.owners.saveAndFlush(owner);
+			}
+			catch (DataIntegrityViolationException ex) {
+				if (!isDuplicatePetNameViolation(ex)) {
+					throw ex;
+				}
+				result.rejectValue("name", "duplicate", "already exists");
+				return VIEWS_PETS_CREATE_OR_UPDATE_FORM;
+			}
+			redirectAttributes.addFlashAttribute("message", "New Pet has been Added");
+			return "redirect:/owners/{ownerId}";
+		});
 	}
 
 	@GetMapping("/pets/{petId}/edit")
-	public String initUpdateForm() {
-		return VIEWS_PETS_CREATE_OR_UPDATE_FORM;
+	public Either<DomainError, String> initUpdateForm(@PathVariable("ownerId") OwnerId ownerId,
+			@PathVariable("petId") PetId petId) {
+		return requireOwner(ownerId).flatMap(owner -> requirePet(owner, ownerId, petId))
+			.map(ignored -> VIEWS_PETS_CREATE_OR_UPDATE_FORM);
 	}
 
 	@PostMapping("/pets/{petId}/edit")
-	public String processUpdateForm(Owner owner, @Valid Pet pet, BindingResult result,
-			RedirectAttributes redirectAttributes) {
+	public Either<DomainError, String> processUpdateForm(@PathVariable("ownerId") OwnerId ownerId, Owner owner,
+			@Valid Pet pet, BindingResult result, RedirectAttributes redirectAttributes) {
+		return requireOwner(ownerId).map(ignored -> {
+			String petName = pet.getName();
 
-		String petName = pet.getName();
+			// checking if the pet name already exists for the owner
+			if (StringUtils.hasText(petName)) {
+				Pet existingPet = owner.getPet(petName, false);
+				if (existingPet != null && !Objects.equals(existingPet.getId(), pet.getId())) {
+					result.rejectValue("name", "duplicate", "already exists");
+				}
+			}
 
-		// checking if the pet name already exists for the owner
-		if (StringUtils.hasText(petName)) {
-			Pet existingPet = owner.getPet(petName, false);
-			if (existingPet != null && !Objects.equals(existingPet.getId(), pet.getId())) {
+			LocalDate currentDate = LocalDate.now();
+			if (pet.getBirthDate() != null && pet.getBirthDate().isAfter(currentDate)) {
+				result.rejectValue("birthDate", "typeMismatch.birthDate");
+			}
+
+			if (result.hasErrors()) {
+				return VIEWS_PETS_CREATE_OR_UPDATE_FORM;
+			}
+
+			try {
+				updatePetDetails(owner, pet);
+			}
+			catch (DataIntegrityViolationException ex) {
+				if (!isDuplicatePetNameViolation(ex)) {
+					throw ex;
+				}
 				result.rejectValue("name", "duplicate", "already exists");
+				return VIEWS_PETS_CREATE_OR_UPDATE_FORM;
 			}
-		}
-
-		LocalDate currentDate = LocalDate.now();
-		if (pet.getBirthDate() != null && pet.getBirthDate().isAfter(currentDate)) {
-			result.rejectValue("birthDate", "typeMismatch.birthDate");
-		}
-
-		if (result.hasErrors()) {
-			return VIEWS_PETS_CREATE_OR_UPDATE_FORM;
-		}
-
-		try {
-			updatePetDetails(owner, pet);
-		}
-		catch (DataIntegrityViolationException ex) {
-			if (!isDuplicatePetNameViolation(ex)) {
-				throw ex;
-			}
-			result.rejectValue("name", "duplicate", "already exists");
-			return VIEWS_PETS_CREATE_OR_UPDATE_FORM;
-		}
-		redirectAttributes.addFlashAttribute("message", "Pet details has been edited");
-		return "redirect:/owners/{ownerId}";
+			redirectAttributes.addFlashAttribute("message", "Pet details has been edited");
+			return "redirect:/owners/{ownerId}";
+		});
 	}
 
 	/**
@@ -184,9 +192,9 @@ class PetController {
 	 * @param pet The pet with updated details
 	 */
 	private void updatePetDetails(Owner owner, Pet pet) {
-		Integer id = pet.getId();
+		PetId id = pet.getId();
 		Assert.state(id != null, "'pet.getId()' must not be null");
-		Pet existingPet = owner.getPet(id);
+		Pet existingPet = owner.getPet(id.id());
 		if (existingPet != null) {
 			// Update existing pet's properties
 			existingPet.setName(pet.getName());

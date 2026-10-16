@@ -17,8 +17,8 @@ package org.springframework.samples.petclinic.owner;
 
 import java.time.LocalDate;
 import java.util.Map;
-import java.util.Optional;
 
+import org.springframework.samples.petclinic.functional.DomainError;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
@@ -30,6 +30,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import jakarta.validation.Valid;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import dev.zazr.control.Either;
+import dev.zazr.control.Option;
 
 /**
  * @author Juergen Hoeller
@@ -61,23 +64,26 @@ class VisitController {
 	 * @return Pet
 	 */
 	@ModelAttribute("visit")
-	public Visit loadPetWithVisit(@PathVariable("ownerId") int ownerId, @PathVariable("petId") int petId,
+	public Visit loadPetWithVisit(@PathVariable("ownerId") OwnerId ownerId, @PathVariable("petId") PetId petId,
 			Map<String, Object> model) {
-		Optional<Owner> optionalOwner = owners.findById(ownerId);
-		Owner owner = optionalOwner.orElseThrow(() -> new IllegalArgumentException(
-				"Owner not found with id: " + ownerId + ". Please ensure the ID is correct "));
-
-		Pet pet = owner.getPet(petId);
-		if (pet == null) {
-			throw new IllegalArgumentException(
-					"Pet with id " + petId + " not found for owner with id " + ownerId + ".");
-		}
-		model.put("pet", pet);
-		model.put("owner", owner);
-
+		// Non-throwing form-backing object; existence is enforced as a value by the
+		// handlers via requireOwnerPet.
 		Visit visit = new Visit();
-		pet.addVisit(visit);
+		this.owners.find(ownerId).forEach(owner -> {
+			model.put("owner", owner);
+			Option.ofNullable(owner.getPet(petId.id())).forEach(pet -> {
+				model.put("pet", pet);
+				pet.addVisit(visit);
+			});
+		});
 		return visit;
+	}
+
+	private Either<DomainError, Pet> requireOwnerPet(OwnerId ownerId, PetId petId) {
+		return this.owners.find(ownerId)
+			.<DomainError>toEither(() -> new OwnerNotFound(ownerId))
+			.flatMap(owner -> Option.ofNullable(owner.getPet(petId.id()))
+				.<DomainError>toEither(() -> new PetNotFound(ownerId, petId)));
 	}
 
 	@ModelAttribute("minVisitDate")
@@ -88,27 +94,31 @@ class VisitController {
 	// Spring MVC calls method loadPetWithVisit(...) before initNewVisitForm is
 	// called
 	@GetMapping("/owners/{ownerId}/pets/{petId}/visits/new")
-	public String initNewVisitForm() {
-		return "pets/createOrUpdateVisitForm";
+	public Either<DomainError, String> initNewVisitForm(@PathVariable("ownerId") OwnerId ownerId,
+			@PathVariable("petId") PetId petId) {
+		return requireOwnerPet(ownerId, petId).map(ignored -> "pets/createOrUpdateVisitForm");
 	}
 
 	// Spring MVC calls method loadPetWithVisit(...) before processNewVisitForm is
 	// called
 	@PostMapping("/owners/{ownerId}/pets/{petId}/visits/new")
-	public String processNewVisitForm(@ModelAttribute Owner owner, @PathVariable int petId, @Valid Visit visit,
-			BindingResult result, RedirectAttributes redirectAttributes) {
-		if (visit.getDate() != null && !visit.getDate().isAfter(LocalDate.now())) {
-			result.rejectValue("date", "typeMismatch.visitDate");
-		}
+	public Either<DomainError, String> processNewVisitForm(@PathVariable("ownerId") OwnerId ownerId,
+			@ModelAttribute Owner owner, @PathVariable("petId") PetId petId, @Valid Visit visit, BindingResult result,
+			RedirectAttributes redirectAttributes) {
+		return requireOwnerPet(ownerId, petId).map(ignored -> {
+			if (visit.getDate() != null && !visit.getDate().isAfter(LocalDate.now())) {
+				result.rejectValue("date", "typeMismatch.visitDate");
+			}
 
-		if (result.hasErrors()) {
-			return "pets/createOrUpdateVisitForm";
-		}
+			if (result.hasErrors()) {
+				return "pets/createOrUpdateVisitForm";
+			}
 
-		owner.addVisit(petId, visit);
-		this.owners.save(owner);
-		redirectAttributes.addFlashAttribute("message", "Your visit has been booked");
-		return "redirect:/owners/{ownerId}";
+			owner.addVisit(petId.id(), visit);
+			this.owners.save(owner);
+			redirectAttributes.addFlashAttribute("message", "Your visit has been booked");
+			return "redirect:/owners/{ownerId}";
+		});
 	}
 
 }

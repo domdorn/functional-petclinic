@@ -17,8 +17,8 @@ package org.springframework.samples.petclinic.owner;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
+import org.springframework.samples.petclinic.functional.DomainError;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +37,9 @@ import org.springframework.web.servlet.ModelAndView;
 import jakarta.validation.Valid;
 
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import dev.zazr.control.Either;
+import dev.zazr.control.Option;
 
 /**
  * @author Juergen Hoeller
@@ -62,11 +65,13 @@ class OwnerController {
 	}
 
 	@ModelAttribute("owner")
-	public Owner findOwner(@PathVariable(name = "ownerId", required = false) Integer ownerId) {
-		return ownerId == null ? new Owner()
-				: this.owners.findById(ownerId)
-					.orElseThrow(() -> new IllegalArgumentException("Owner not found with id: " + ownerId
-							+ ". Please ensure the ID is correct " + "and the owner exists in the database."));
+	public Owner findOwner(@PathVariable(name = "ownerId", required = false) Option<OwnerId> ownerId) {
+		// Pure form-backing object: a missing owner is not an error here, it is an empty
+		// form. Handlers that require the owner to exist (e.g. showOwner) enforce that as
+		// a value via Either instead of throwing from this shared @ModelAttribute.
+		// OptionPathVariableArgumentResolver guarantees a non-null Option (none when the
+		// {ownerId} segment is absent).
+		return ownerId.flatMap(this.owners::find).getOrElse(Owner::new);
 	}
 
 	@GetMapping("/owners/new")
@@ -83,7 +88,7 @@ class OwnerController {
 
 		this.owners.save(owner);
 		redirectAttributes.addFlashAttribute("message", "New Owner Created");
-		return "redirect:/owners/" + owner.getId();
+		return "redirect:/owners/" + owner.ownerId().map(id -> Integer.toString(id.id())).getOrElse("");
 	}
 
 	@GetMapping("/owners/find")
@@ -122,7 +127,7 @@ class OwnerController {
 		if (ownersResults.getTotalElements() == 1) {
 			// 1 owner found
 			owner = ownersResults.iterator().next();
-			return "redirect:/owners/" + owner.getId();
+			return "redirect:/owners/" + owner.ownerId().map(id -> Integer.toString(id.id())).getOrElse("");
 		}
 
 		// multiple owners found
@@ -151,8 +156,8 @@ class OwnerController {
 	}
 
 	@PostMapping("/owners/{ownerId}/edit")
-	public String processUpdateOwnerForm(@Valid Owner owner, BindingResult result, @PathVariable("ownerId") int ownerId,
-			RedirectAttributes redirectAttributes) {
+	public String processUpdateOwnerForm(@Valid Owner owner, BindingResult result,
+			@PathVariable("ownerId") OwnerId ownerId, RedirectAttributes redirectAttributes) {
 		if (result.hasErrors()) {
 			redirectAttributes.addFlashAttribute("error", "There was an error in updating the owner.");
 			return VIEWS_OWNER_CREATE_OR_UPDATE_FORM;
@@ -173,16 +178,15 @@ class OwnerController {
 	/**
 	 * Custom handler for displaying an owner.
 	 * @param ownerId the ID of the owner to display
-	 * @return a ModelMap with the model attributes for the view
+	 * @return the owner details view on the right, or an {@link OwnerNotFound} error on
+	 * the left when no such owner exists
 	 */
 	@GetMapping("/owners/{ownerId}")
-	public ModelAndView showOwner(@PathVariable("ownerId") int ownerId) {
-		ModelAndView mav = new ModelAndView("owners/ownerDetails");
-		Optional<Owner> optionalOwner = this.owners.findById(ownerId);
-		Owner owner = optionalOwner.orElseThrow(() -> new IllegalArgumentException(
-				"Owner not found with id: " + ownerId + ". Please ensure the ID is correct "));
-		mav.addObject(owner);
-		return mav;
+	public Either<DomainError, ModelAndView> showOwner(@PathVariable("ownerId") int ownerId) {
+		OwnerId id = new OwnerId(ownerId);
+		return this.owners.find(id)
+			.<DomainError>toEither(() -> new OwnerNotFound(id))
+			.map(owner -> new ModelAndView("owners/ownerDetails").addObject(owner));
 	}
 
 }
