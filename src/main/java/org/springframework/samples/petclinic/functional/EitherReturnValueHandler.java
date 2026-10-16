@@ -90,6 +90,7 @@ public class EitherReturnValueHandler implements HandlerMethodReturnValueHandler
 	private void renderError(DomainError error, ModelAndViewContainer mavContainer) {
 		HttpStatus status = switch (error) {
 			case NotFound ignored -> HttpStatus.NOT_FOUND;
+			case ValidationFailed ignored -> HttpStatus.BAD_REQUEST;
 			default -> HttpStatus.INTERNAL_SERVER_ERROR;
 		};
 		mavContainer.setStatus(status);
