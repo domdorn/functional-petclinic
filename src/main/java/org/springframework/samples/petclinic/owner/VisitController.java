@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.util.Map;
 
 import org.springframework.samples.petclinic.functional.DomainError;
+import org.springframework.samples.petclinic.functional.Validations;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
@@ -106,9 +107,7 @@ class VisitController {
 			@ModelAttribute Owner owner, @PathVariable("petId") PetId petId, @Valid Visit visit, BindingResult result,
 			RedirectAttributes redirectAttributes) {
 		return requireOwnerPet(ownerId, petId).map(ignored -> {
-			if (visit.getDate() != null && !visit.getDate().isAfter(LocalDate.now())) {
-				result.rejectValue("date", "typeMismatch.visitDate");
-			}
+			Validations.rejectInto(VisitValidator.validate(visit), result);
 
 			if (result.hasErrors()) {
 				return "pets/createOrUpdateVisitForm";
