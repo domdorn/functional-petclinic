@@ -16,7 +16,8 @@
 
   <properties>
     <!-- Generic properties -->
-    <java.version>17</java.version>
+    <java.version>28</java.version>
+    <maven.compiler.enablePreview>true</maven.compiler.enablePreview>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <!-- Important for reproducible builds. Update using e.g. ./mvnw versions:set -DnewVersion=... -->
@@ -27,9 +28,17 @@
     <webjars-bootstrap.version>5.3.8</webjars-bootstrap.version>
     <webjars-font-awesome.version>4.7.0</webjars-font-awesome.version>
 
+    <!-- Functional programming library (fork of Vavr); provides Either, Option, Try, Validation, immutable collections -->
+    <zazr.version>0.4.0</zazr.version>
+
     <!-- Checkstyle needs to stay on v12 since v13 sets minimal jdk to 21 - https://checkstyle.org/releasenotes.html#Release_13.0.0 -->
     <checkstyle.version>12.3.1</checkstyle.version>
     <jacoco.version>0.8.15</jacoco.version>
+    <!-- JaCoCo 0.8.15 cannot read Java 28 bytecode (class file major version 72); skip it
+         while on the JDK 28 EA toolchain. Re-enable once JaCoCo supports it. See gotchas.md. -->
+    <jacoco.skip>true</jacoco.skip>
+    <!-- Default empty so surefire's @{argLine} resolves when the JaCoCo agent is skipped. -->
+    <argLine></argLine>
     <libsass.version>0.3.4</libsass.version>
     <lifecycle-mapping>1.0.0</lifecycle-mapping>
     <maven-checkstyle.version>3.6.0</maven-checkstyle.version>
@@ -38,6 +47,13 @@
   </properties>
 
   <dependencies>
+    <!-- Functional programming: errors as values, immutable collections -->
+    <dependency>
+      <groupId>dev.zazr</groupId>
+      <artifactId>zazr-core</artifactId>
+      <version>${zazr.version}</version>
+    </dependency>
+
     <!-- Spring and Spring Boot dependencies -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -184,6 +200,21 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <!-- @{argLine} preserves the jacoco agent argLine and appends preview flag -->
+          <argLine>@{argLine} --enable-preview</argLine>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <argLine>@{argLine} --enable-preview</argLine>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
         <executions>
           <execution>
@@ -255,6 +286,10 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <!-- Preview-compiled classes require the enable-preview flag at runtime -->
+          <jvmArguments>--enable-preview</jvmArguments>
+        </configuration>
         <executions>
           <execution>
             <!-- Spring Boot Actuator displays build-related information
