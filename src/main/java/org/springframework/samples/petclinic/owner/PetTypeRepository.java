@@ -27,7 +27,7 @@ import org.springframework.data.jpa.repository.Query;
  * @author Patrick Baumgartner
  */
 
-public interface PetTypeRepository extends JpaRepository<PetType, Integer> {
+public interface PetTypeRepository extends JpaRepository<PetType, PetTypeId> {
 
 	/**
 	 * Retrieve all {@link PetType}s from the data store.

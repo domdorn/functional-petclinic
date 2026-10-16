@@ -15,11 +15,11 @@
  */
 package org.springframework.samples.petclinic.owner;
 
-import java.util.Optional;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import dev.zazr.control.Option;
 
 /**
  * Repository class for <code>Owner</code> domain objects. All method names are compliant
@@ -33,7 +33,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author Michael Isvy
  * @author Wick Dynex
  */
-public interface OwnerRepository extends JpaRepository<Owner, Integer> {
+public interface OwnerRepository extends JpaRepository<Owner, OwnerId> {
 
 	/**
 	 * Retrieve {@link Owner}s from the data store by last name, returning all owners
@@ -45,18 +45,15 @@ public interface OwnerRepository extends JpaRepository<Owner, Integer> {
 	Page<Owner> findByLastNameStartingWith(String lastName, Pageable pageable);
 
 	/**
-	 * Retrieve an {@link Owner} from the data store by id.
-	 * <p>
-	 * This method returns an {@link Optional} containing the {@link Owner} if found. If
-	 * no {@link Owner} is found with the provided id, it will return an empty
-	 * {@link Optional}.
-	 * </p>
-	 * @param id the id to search for
-	 * @return an {@link Optional} containing the {@link Owner} if found, or an empty
-	 * {@link Optional} if not found.
-	 * @throws IllegalArgumentException if the id is null (assuming null is not a valid
-	 * input for id)
+	 * Retrieve an {@link Owner} by its typed {@link OwnerId}. This is the identity-typed,
+	 * {@link Option}-returning entry point for the application layer; it adapts Spring
+	 * Data's inherited {@code findById} so no {@code java.util.Optional} leaks into our
+	 * code. The raw {@code Integer} boundary is confined to the JPA call inside here.
+	 * @param id the typed owner id
+	 * @return an {@link Option} holding the {@link Owner} if found, or empty if not
 	 */
-	Optional<Owner> findById(Integer id);
+	default Option<Owner> find(OwnerId id) {
+		return Option.ofOptional(findById(id));
+	}
 
 }
