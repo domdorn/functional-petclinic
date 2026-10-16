@@ -17,6 +17,9 @@ package org.springframework.samples.petclinic.owner;
 
 import org.junit.jupiter.api.Test;
 
+import dev.zazr.control.Option;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -26,7 +29,7 @@ class OwnerTests {
 	void addPetAddsPersistedPet() {
 		Owner owner = new Owner();
 		Pet pet = new Pet();
-		pet.setId(5);
+		pet.setId(new PetId(5));
 		pet.setName("Buddy");
 
 		owner.addPet(pet);
@@ -36,10 +39,31 @@ class OwnerTests {
 	}
 
 	@Test
+	void typedIdIsPresentWhenPersisted() {
+		Owner owner = new Owner();
+		owner.setId(new OwnerId(7));
+		Pet pet = new Pet();
+		pet.setId(new PetId(3));
+		Visit visit = new Visit();
+		visit.setId(new VisitId(9));
+
+		assertThat(owner.ownerId()).isEqualTo(Option.some(new OwnerId(7)));
+		assertThat(pet.petId()).isEqualTo(Option.some(new PetId(3)));
+		assertThat(visit.visitId()).isEqualTo(Option.some(new VisitId(9)));
+	}
+
+	@Test
+	void typedIdIsEmptyWhenTransient() {
+		assertThat(new Owner().ownerId()).isEqualTo(Option.none());
+		assertThat(new Pet().petId()).isEqualTo(Option.none());
+		assertThat(new Visit().visitId()).isEqualTo(Option.none());
+	}
+
+	@Test
 	void addPetDoesNotAddDuplicatePet() {
 		Owner owner = new Owner();
 		Pet pet = new Pet();
-		pet.setId(5);
+		pet.setId(new PetId(5));
 		pet.setName("Buddy");
 
 		owner.addPet(pet);

@@ -33,7 +33,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
-import java.util.Optional;
+
+import dev.zazr.control.Option;
 
 /**
  * Test class for {@link VisitController}
@@ -61,8 +62,8 @@ class VisitControllerTests {
 		Owner owner = new Owner();
 		Pet pet = new Pet();
 		owner.addPet(pet);
-		pet.setId(TEST_PET_ID);
-		given(this.owners.findById(TEST_OWNER_ID)).willReturn(Optional.of(owner));
+		pet.setId(new PetId(TEST_PET_ID));
+		given(this.owners.find(new OwnerId(TEST_OWNER_ID))).willReturn(Option.some(owner));
 	}
 
 	@Test
@@ -116,6 +117,23 @@ class VisitControllerTests {
 			.andExpect(model().attributeHasFieldErrors("visit", "description"))
 			.andExpect(status().isOk())
 			.andExpect(view().name("pets/createOrUpdateVisitForm"));
+	}
+
+	@Test
+	void initNewVisitFormOwnerNotFoundRendersErrorAsValue() throws Exception {
+		int unknownOwnerId = 999;
+		given(this.owners.find(new OwnerId(unknownOwnerId))).willReturn(Option.none());
+		mockMvc.perform(get("/owners/{ownerId}/pets/{petId}/visits/new", unknownOwnerId, TEST_PET_ID))
+			.andExpect(status().isNotFound())
+			.andExpect(view().name("error"));
+	}
+
+	@Test
+	void initNewVisitFormPetNotFoundRendersErrorAsValue() throws Exception {
+		int unknownPetId = 999;
+		mockMvc.perform(get("/owners/{ownerId}/pets/{petId}/visits/new", TEST_OWNER_ID, unknownPetId))
+			.andExpect(status().isNotFound())
+			.andExpect(view().name("error"));
 	}
 
 }

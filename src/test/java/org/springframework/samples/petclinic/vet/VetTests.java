@@ -18,6 +18,8 @@ package org.springframework.samples.petclinic.vet;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.SerializationUtils;
 
+import dev.zazr.control.Option;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -30,12 +32,20 @@ class VetTests {
 		Vet vet = new Vet();
 		vet.setFirstName("Zaphod");
 		vet.setLastName("Beeblebrox");
-		vet.setId(123);
+		vet.setId(new VetId(123));
 		@SuppressWarnings("deprecation")
 		Vet other = (Vet) SerializationUtils.deserialize(SerializationUtils.serialize(vet));
 		assertThat(other.getFirstName()).isEqualTo(vet.getFirstName());
 		assertThat(other.getLastName()).isEqualTo(vet.getLastName());
 		assertThat(other.getId()).isEqualTo(vet.getId());
+	}
+
+	@Test
+	void typedId() {
+		Vet vet = new Vet();
+		assertThat(vet.vetId()).isEqualTo(Option.none());
+		vet.setId(new VetId(123));
+		assertThat(vet.vetId()).isEqualTo(Option.some(new VetId(123)));
 	}
 
 }

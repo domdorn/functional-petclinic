@@ -2,7 +2,6 @@ package org.springframework.samples.petclinic;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,7 +19,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.samples.petclinic.owner.Owner;
+import org.springframework.samples.petclinic.owner.OwnerId;
 import org.springframework.samples.petclinic.owner.OwnerRepository;
+
+import dev.zazr.control.Option;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -40,8 +42,8 @@ public class PetClinicConcurrencyTests {
 	@Test
 	public void testDuplicatePetNameRaceConditionIsBlocked() throws Exception {
 		int ownerId = 1;
-		Optional<Owner> initialOwnerOpt = ownerRepository.findById(ownerId);
-		assertThat(initialOwnerOpt).isPresent();
+		Option<Owner> initialOwnerOpt = ownerRepository.find(new OwnerId(ownerId));
+		assertThat(initialOwnerOpt.isDefined()).isTrue();
 		Owner owner = initialOwnerOpt.get();
 
 		int initialPetCount = owner.getPets().size();
@@ -111,7 +113,7 @@ public class PetClinicConcurrencyTests {
 			executorService.shutdown();
 		}
 
-		Owner updatedOwner = ownerRepository.findById(ownerId).get();
+		Owner updatedOwner = ownerRepository.find(new OwnerId(ownerId)).get();
 		int newPetCount = updatedOwner.getPets().size();
 
 		System.out.println("--- Concurrency Test Assertions ---");

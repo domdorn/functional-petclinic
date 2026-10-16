@@ -30,9 +30,10 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.dao.DataIntegrityViolationException;
+
+import dev.zazr.control.Option;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -70,7 +71,7 @@ class PetControllerTests {
 	@BeforeEach
 	void setup() {
 		PetType cat = new PetType();
-		cat.setId(3);
+		cat.setId(new PetTypeId(3));
 		cat.setName("hamster");
 		given(this.types.findPetTypes()).willReturn(List.of(cat));
 
@@ -79,11 +80,11 @@ class PetControllerTests {
 		Pet dog = new Pet();
 		owner.addPet(pet);
 		owner.addPet(dog);
-		pet.setId(TEST_PET_ID);
-		dog.setId(TEST_PET_ID + 1);
+		pet.setId(new PetId(TEST_PET_ID));
+		dog.setId(new PetId(TEST_PET_ID + 1));
 		pet.setName("petty");
 		dog.setName("doggy");
-		given(this.owners.findById(TEST_OWNER_ID)).willReturn(Optional.of(owner));
+		given(this.owners.find(new OwnerId(TEST_OWNER_ID))).willReturn(Option.some(owner));
 	}
 
 	@Test
@@ -269,6 +270,23 @@ class PetControllerTests {
 				.andExpect(view().name("pets/createOrUpdatePetForm"));
 		}
 
+	}
+
+	@Test
+	void initCreationFormOwnerNotFoundRendersErrorAsValue() throws Exception {
+		int unknownOwnerId = 999;
+		given(this.owners.find(new OwnerId(unknownOwnerId))).willReturn(Option.none());
+		mockMvc.perform(get("/owners/{ownerId}/pets/new", unknownOwnerId))
+			.andExpect(status().isNotFound())
+			.andExpect(view().name("error"));
+	}
+
+	@Test
+	void initUpdateFormPetNotFoundRendersErrorAsValue() throws Exception {
+		int unknownPetId = 999;
+		mockMvc.perform(get("/owners/{ownerId}/pets/{petId}/edit", TEST_OWNER_ID, unknownPetId))
+			.andExpect(status().isNotFound())
+			.andExpect(view().name("error"));
 	}
 
 }

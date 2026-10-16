@@ -17,33 +17,35 @@
 package org.springframework.samples.petclinic.service;
 
 import org.springframework.orm.ObjectRetrievalFailureException;
-import org.springframework.samples.petclinic.model.BaseEntity;
 
 import java.util.Collection;
+import java.util.function.ToIntFunction;
 
 /**
- * Utility methods for handling entities. Separate from the BaseEntity class mainly
+ * Utility methods for handling entities. Separate from the entities themselves mainly
  * because of dependency on the ORM-associated ObjectRetrievalFailureException.
  *
  * @author Juergen Hoeller
  * @author Sam Brannen
- * @see org.springframework.samples.petclinic.model.BaseEntity
  * @since 29.10.2003
  */
 public abstract class EntityUtils {
 
 	/**
 	 * Look up the entity of the given class with the given id in the given collection.
+	 * Entities no longer share a base type, so the caller supplies how to read the id as
+	 * an int (e.g. {@code v -> v.getId().id()}).
 	 * @param entities the collection to search
 	 * @param entityClass the entity class to look up
 	 * @param entityId the entity id to look up
+	 * @param idOf extracts the integer id of an entity
 	 * @return the found entity
 	 * @throws ObjectRetrievalFailureException if the entity was not found
 	 */
-	public static <T extends BaseEntity> T getById(Collection<T> entities, Class<T> entityClass, int entityId)
+	public static <T> T getById(Collection<T> entities, Class<T> entityClass, int entityId, ToIntFunction<T> idOf)
 			throws ObjectRetrievalFailureException {
 		for (T entity : entities) {
-			if (entity.getId() != null && entity.getId() == entityId && entityClass.isInstance(entity)) {
+			if (entityClass.isInstance(entity) && idOf.applyAsInt(entity) == entityId) {
 				return entity;
 			}
 		}

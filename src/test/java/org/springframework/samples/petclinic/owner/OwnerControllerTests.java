@@ -31,7 +31,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
+
+import dev.zazr.control.Option;
 
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
@@ -72,7 +73,7 @@ class OwnerControllerTests {
 
 	private Owner george() {
 		Owner george = new Owner();
-		george.setId(TEST_OWNER_ID);
+		george.setId(new OwnerId(TEST_OWNER_ID));
 		george.setFirstName("George");
 		george.setLastName("Franklin");
 		george.setAddress("110 W. Liberty St.");
@@ -85,7 +86,7 @@ class OwnerControllerTests {
 		max.setName("Max");
 		max.setBirthDate(LocalDate.now());
 		george.addPet(max);
-		max.setId(1);
+		max.setId(new PetId(1));
 		return george;
 	}
 
@@ -96,7 +97,7 @@ class OwnerControllerTests {
 		given(this.owners.findByLastNameStartingWith(eq("Franklin"), any(Pageable.class)))
 			.willReturn(new PageImpl<>(List.of(george)));
 
-		given(this.owners.findById(TEST_OWNER_ID)).willReturn(Optional.of(george));
+		given(this.owners.find(new OwnerId(TEST_OWNER_ID))).willReturn(Option.some(george));
 		Visit visit = new Visit();
 		visit.setDate(LocalDate.now());
 		george.getPet("Max").getVisits().add(visit);
@@ -296,18 +297,28 @@ class OwnerControllerTests {
 	}
 
 	@Test
+	void showOwnerNotFoundRendersErrorAsValue() throws Exception {
+		int unknownId = 42;
+		given(this.owners.find(new OwnerId(unknownId))).willReturn(Option.none());
+
+		mockMvc.perform(get("/owners/{ownerId}", unknownId))
+			.andExpect(status().isNotFound())
+			.andExpect(view().name("error"));
+	}
+
+	@Test
 	void processUpdateOwnerFormWithIdMismatch() throws Exception {
 		int pathOwnerId = 1;
 
 		Owner owner = new Owner();
-		owner.setId(2);
+		owner.setId(new OwnerId(2));
 		owner.setFirstName("John");
 		owner.setLastName("Doe");
 		owner.setAddress("Center Street");
 		owner.setCity("New York");
 		owner.setTelephone("0123456789");
 
-		when(owners.findById(pathOwnerId)).thenReturn(Optional.of(owner));
+		when(owners.find(new OwnerId(pathOwnerId))).thenReturn(Option.some(owner));
 
 		mockMvc.perform(MockMvcRequestBuilders.post("/owners/{ownerId}/edit", pathOwnerId).flashAttr("owner", owner))
 			.andExpect(status().is3xxRedirection())
