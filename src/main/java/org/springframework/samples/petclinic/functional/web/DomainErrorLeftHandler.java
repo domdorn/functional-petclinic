@@ -16,6 +16,7 @@
 package org.springframework.samples.petclinic.functional.web;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.samples.petclinic.functional.DomainError;
 import org.springframework.samples.petclinic.functional.NotFound;
 import org.springframework.samples.petclinic.functional.ValidationFailed;
@@ -26,8 +27,9 @@ import com.dominikdorn.zazr.web.LeftRendering;
 /**
  * Maps this application's {@link DomainError} taxonomy to an HTTP rendering for the
  * generic {@code EitherReturnValueHandler}: {@link NotFound} to 404,
- * {@link ValidationFailed} to 400, anything else to 500 — all shown through the shared
- * {@code error} view with the error's message.
+ * {@link ValidationFailed} to 400, anything else to 500. View endpoints render the shared
+ * {@code error} view with the error's message; {@code @ResponseBody}/JSON endpoints get
+ * an RFC-7807 {@link ProblemDetail} body carrying the same status and message.
  */
 public class DomainErrorLeftHandler implements EitherLeftHandler {
 
@@ -41,7 +43,8 @@ public class DomainErrorLeftHandler implements EitherLeftHandler {
 			case ValidationFailed ignored -> HttpStatus.BAD_REQUEST;
 			default -> HttpStatus.INTERNAL_SERVER_ERROR;
 		};
-		return LeftRendering.view(status, ERROR_VIEW, error.message());
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, error.message());
+		return LeftRendering.view(status, ERROR_VIEW, error.message()).withBody(problem);
 	}
 
 }

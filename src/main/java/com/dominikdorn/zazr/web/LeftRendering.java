@@ -17,28 +17,50 @@ package com.dominikdorn.zazr.web;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpStatusCode;
 
 /**
- * How an {@code Either}'s {@code Left} value should be rendered: the HTTP status, the
- * view name, and the model attributes to expose to that view. Returned by
- * {@link EitherLeftHandler} and applied by {@link EitherReturnValueHandler}.
+ * How an {@code Either}'s {@code Left} value should be rendered. It carries enough for
+ * both kinds of endpoint, so the same value serves either:
+ * <ul>
+ * <li><b>View endpoints</b> use {@link #status()}, {@link #viewName()} and
+ * {@link #model()}.</li>
+ * <li><b>Body ({@code @ResponseBody}/JSON) endpoints</b> use {@link #status()} and
+ * {@link #body()} — e.g. a {@link org.springframework.http.ProblemDetail}. When
+ * {@code body} is {@code null} the body endpoint falls back to writing
+ * {@link #model()}.</li>
+ * </ul>
+ * Returned by {@link EitherLeftHandler} and applied by {@link EitherReturnValueHandler}.
  *
  * @param status the HTTP status to send
- * @param viewName the view to render
+ * @param viewName the view to render (view endpoints)
  * @param model the model attributes for the view
+ * @param body the object to serialize for body endpoints, or {@code null} to fall back to
+ * the model
  */
-public record LeftRendering(HttpStatusCode status, String viewName, Map<String, Object> model) {
+public record LeftRendering(HttpStatusCode status, String viewName, Map<String, Object> model, @Nullable Object body) {
 
 	/**
-	 * Convenience for a view with a single {@code message} attribute.
+	 * Convenience for a view with a single {@code message} attribute and no dedicated
+	 * body object (body endpoints fall back to the model).
 	 * @param status the HTTP status
 	 * @param viewName the view to render
 	 * @param message the message exposed as the {@code message} model attribute
 	 * @return the rendering
 	 */
 	public static LeftRendering view(HttpStatusCode status, String viewName, String message) {
-		return new LeftRendering(status, viewName, Map.of("message", message));
+		return new LeftRendering(status, viewName, Map.of("message", message), null);
+	}
+
+	/**
+	 * Returns a copy of this rendering with the given body object used for body
+	 * endpoints.
+	 * @param body the object to serialize for {@code @ResponseBody}/JSON endpoints
+	 * @return a rendering with the body attached
+	 */
+	public LeftRendering withBody(Object body) {
+		return new LeftRendering(this.status, this.viewName, this.model, body);
 	}
 
 }

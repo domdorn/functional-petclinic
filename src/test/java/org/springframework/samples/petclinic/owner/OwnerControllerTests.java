@@ -318,14 +318,15 @@ class OwnerControllerTests {
 	}
 
 	@Test
-	void ownerSummaryLeftIsJsonErrorWithStatus() throws Exception {
+	void ownerSummaryLeftIsProblemDetailWithStatus() throws Exception {
 		int unknownId = 999;
 		given(this.owners.find(new OwnerId(unknownId))).willReturn(Option.none());
 
 		mockMvc.perform(get("/owners/{ownerId}/summary", unknownId).accept(MediaType.APPLICATION_JSON))
 			.andExpect(status().isNotFound())
-			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.message").value(containsString(Integer.toString(unknownId))));
+			.andExpect(jsonPath("$.status").value(404))
+			.andExpect(jsonPath("$.title").value("Not Found"))
+			.andExpect(jsonPath("$.detail").value(containsString(Integer.toString(unknownId))));
 	}
 
 	@Test

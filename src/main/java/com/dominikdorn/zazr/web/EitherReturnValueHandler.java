@@ -104,7 +104,10 @@ public class EitherReturnValueHandler implements HandlerMethodReturnValueHandler
 				if (response != null) {
 					response.setStatus(rendering.status().value());
 				}
-				this.bodyProcessor.handleReturnValue(rendering.model(), bodyType, mavContainer, webRequest);
+				// Prefer a dedicated body object (e.g. a ProblemDetail) when the
+				// EitherLeftHandler provides one; otherwise fall back to the view model.
+				Object body = (rendering.body() != null) ? rendering.body() : rendering.model();
+				this.bodyProcessor.handleReturnValue(body, bodyType, mavContainer, webRequest);
 			}
 		}
 	}
