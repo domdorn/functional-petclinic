@@ -34,11 +34,11 @@ import java.util.List;
 
 import dev.zazr.control.Option;
 
-import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.emptyIterable;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.iterableWithSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
@@ -100,7 +100,7 @@ class OwnerControllerTests {
 		given(this.owners.find(new OwnerId(TEST_OWNER_ID))).willReturn(Option.some(george));
 		Visit visit = new Visit();
 		visit.setDate(LocalDate.now());
-		george.getPet("Max").getVisits().add(visit);
+		george.getPet("Max").addVisit(visit);
 
 	}
 
@@ -290,9 +290,9 @@ class OwnerControllerTests {
 			.andExpect(model().attribute("owner", hasProperty("address", is("110 W. Liberty St."))))
 			.andExpect(model().attribute("owner", hasProperty("city", is("Madison"))))
 			.andExpect(model().attribute("owner", hasProperty("telephone", is("6085551023"))))
-			.andExpect(model().attribute("owner", hasProperty("pets", not(empty()))))
+			.andExpect(model().attribute("owner", hasProperty("pets", not(emptyIterable()))))
 			.andExpect(model().attribute("owner",
-					hasProperty("pets", hasItem(hasProperty("visits", hasSize(greaterThan(0)))))))
+					hasProperty("pets", hasItem(hasProperty("visits", iterableWithSize(greaterThan(0)))))))
 			.andExpect(view().name("owners/ownerDetails"));
 	}
 

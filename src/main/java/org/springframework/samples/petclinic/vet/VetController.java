@@ -74,7 +74,7 @@ class VetController {
 		// Here we are returning an object of type 'Vets' rather than a collection of Vet
 		// objects so it is simpler for JSon/Object mapping
 		Vets vets = new Vets();
-		vets.getVetList().addAll(this.vetRepository.findAll().asJava());
+		vets.setVetList(this.vetRepository.findAll());
 		return vets;
 	}
 

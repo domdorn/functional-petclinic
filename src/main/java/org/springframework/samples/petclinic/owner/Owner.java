@@ -27,6 +27,7 @@ import org.springframework.core.style.ToStringCreator;
 import org.springframework.samples.petclinic.model.Person;
 import org.springframework.util.Assert;
 
+import dev.zazr.collection.Vector;
 import dev.zazr.control.Option;
 
 import jakarta.persistence.CascadeType;
@@ -112,23 +113,23 @@ public class Owner extends Person {
 		this.telephone = telephone;
 	}
 
-	public List<Pet> getPets() {
-		return this.pets;
+	public Vector<Pet> getPets() {
+		return Vector.ofAll(this.pets);
 	}
 
 	public void addPet(Pet pet) {
 		if (pet == null) {
 			return;
 		}
-		if (getPets().contains(pet)) {
+		if (this.pets.contains(pet)) {
 			return;
 		}
-		for (Pet existingPet : getPets()) {
+		for (Pet existingPet : this.pets) {
 			if (!existingPet.isNew() && !pet.isNew() && Objects.equals(existingPet.getId(), pet.getId())) {
 				return;
 			}
 		}
-		getPets().add(pet);
+		this.pets.add(pet);
 	}
 
 	/**
@@ -146,7 +147,7 @@ public class Owner extends Person {
 	 * @return the Pet with the given id, or null if no such Pet exists for this Owner
 	 */
 	public Pet getPet(Integer id) {
-		for (Pet pet : getPets()) {
+		for (Pet pet : this.pets) {
 			if (!pet.isNew()) {
 				PetId compId = pet.getId();
 				if (compId != null && Objects.equals(compId.id(), id)) {
@@ -164,7 +165,7 @@ public class Owner extends Person {
 	 * @return the Pet with the given name, or null if no such Pet exists for this Owner
 	 */
 	public Pet getPet(String name, boolean ignoreNew) {
-		for (Pet pet : getPets()) {
+		for (Pet pet : this.pets) {
 			String compName = pet.getName();
 			if (compName != null && compName.equalsIgnoreCase(name)) {
 				if (!ignoreNew || !pet.isNew()) {

@@ -15,29 +15,30 @@
  */
 package org.springframework.samples.petclinic.vet;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 
+import dev.zazr.collection.Vector;
+
 /**
  * Simple domain object representing a list of veterinarians. Mostly here to be used for
- * the 'vets' {@link org.springframework.web.servlet.view.xml.MarshallingView}.
+ * the 'vets' {@link org.springframework.web.servlet.view.xml.MarshallingView}. Holds an
+ * immutable zazr {@link Vector}; zazr-jackson renders it as a JSON array.
  *
  * @author Arjen Poutsma
  */
 @XmlRootElement
 public class Vets {
 
-	private List<Vet> vets;
+	private Vector<Vet> vets = Vector.empty();
 
 	@XmlElement
-	public List<Vet> getVetList() {
-		if (vets == null) {
-			vets = new ArrayList<>();
-		}
-		return vets;
+	public Vector<Vet> getVetList() {
+		return this.vets;
+	}
+
+	public void setVetList(Vector<Vet> vets) {
+		this.vets = vets;
 	}
 
 }

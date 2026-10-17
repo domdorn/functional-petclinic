@@ -16,7 +16,6 @@
 package org.springframework.samples.petclinic.owner;
 
 import java.time.LocalDate;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -27,6 +26,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.samples.petclinic.model.NamedEntity;
 
+import dev.zazr.collection.Vector;
 import dev.zazr.control.Option;
 
 import jakarta.persistence.CascadeType;
@@ -92,12 +92,12 @@ public class Pet extends NamedEntity {
 		this.type = type;
 	}
 
-	public Collection<Visit> getVisits() {
-		return this.visits;
+	public Vector<Visit> getVisits() {
+		return Vector.ofAll(this.visits);
 	}
 
 	public void addVisit(Visit visit) {
-		getVisits().add(visit);
+		this.visits.add(visit);
 	}
 
 	/**

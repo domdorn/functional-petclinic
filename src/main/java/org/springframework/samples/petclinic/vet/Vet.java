@@ -17,9 +17,7 @@ package org.springframework.samples.petclinic.vet;
 
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -28,6 +26,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.samples.petclinic.model.NamedEntity;
 import org.springframework.samples.petclinic.model.Person;
 
+import dev.zazr.collection.Vector;
 import dev.zazr.control.Option;
 
 import jakarta.persistence.Column;
@@ -76,10 +75,10 @@ public class Vet extends Person {
 	}
 
 	@XmlElement
-	public List<Specialty> getSpecialties() {
+	public Vector<Specialty> getSpecialties() {
 		return getSpecialtiesInternal().stream()
 			.sorted(Comparator.comparing(NamedEntity::getName))
-			.collect(Collectors.toList());
+			.collect(Vector.collector());
 	}
 
 	public int getNrOfSpecialties() {

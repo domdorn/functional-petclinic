@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import java.time.LocalDate;
-import java.util.Collection;
 
 import dev.zazr.collection.Vector;
 import dev.zazr.control.Option;
@@ -244,7 +243,7 @@ class ClinicServiceTests {
 		Owner owner6 = optionalOwner.get();
 
 		Pet pet7 = owner6.getPet(7);
-		Collection<Visit> visits = pet7.getVisits();
+		Vector<Visit> visits = pet7.getVisits();
 
 		assertThat(visits) //
 			.hasSize(2) //

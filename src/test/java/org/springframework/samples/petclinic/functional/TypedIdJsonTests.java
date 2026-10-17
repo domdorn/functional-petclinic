@@ -39,7 +39,9 @@ import tools.jackson.databind.json.JsonMapper;
  */
 class TypedIdJsonTests {
 
-	private final JsonMapper mapper = JsonMapper.builder().build();
+	// Entities now carry zazr collections (pets, specialties), so use the same
+	// module-discovering mapper Spring Boot builds.
+	private final JsonMapper mapper = JsonMapper.builder().findAndAddModules().build();
 
 	@Test
 	void everyTypedIdSerializesAsABareInt() {
