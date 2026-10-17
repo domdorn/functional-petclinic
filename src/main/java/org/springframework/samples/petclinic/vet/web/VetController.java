@@ -13,7 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.samples.petclinic.vet;
+package org.springframework.samples.petclinic.vet.web;
+
+import org.springframework.samples.petclinic.vet.Vet;
+import org.springframework.samples.petclinic.vet.Vets;
+import org.springframework.samples.petclinic.vet.persistence.VetRepository;
 
 import java.util.List;
 
@@ -34,7 +38,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
  * @author Arjen Poutsma
  */
 @Controller
-class VetController {
+public class VetController {
 
 	private final VetRepository vetRepository;
 

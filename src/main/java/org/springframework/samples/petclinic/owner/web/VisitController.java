@@ -13,7 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.samples.petclinic.owner;
+package org.springframework.samples.petclinic.owner.web;
+
+import org.springframework.samples.petclinic.owner.Owner;
+import org.springframework.samples.petclinic.owner.OwnerId;
+import org.springframework.samples.petclinic.owner.OwnerNotFound;
+import org.springframework.samples.petclinic.owner.Pet;
+import org.springframework.samples.petclinic.owner.PetId;
+import org.springframework.samples.petclinic.owner.PetNotFound;
+import org.springframework.samples.petclinic.owner.Visit;
+import org.springframework.samples.petclinic.owner.persistence.OwnerRepository;
 
 import java.time.LocalDate;
 import java.util.Map;
@@ -44,7 +53,7 @@ import dev.zazr.control.Option;
  * @author Wick Dynex
  */
 @Controller
-class VisitController {
+public class VisitController {
 
 	private final OwnerRepository owners;
 

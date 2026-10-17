@@ -15,6 +15,8 @@
  */
 package org.springframework.samples.petclinic.owner;
 
+import org.springframework.samples.petclinic.owner.web.VisitValidator;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;

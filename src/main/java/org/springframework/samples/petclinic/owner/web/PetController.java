@@ -13,7 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.samples.petclinic.owner;
+package org.springframework.samples.petclinic.owner.web;
+
+import org.springframework.samples.petclinic.owner.Owner;
+import org.springframework.samples.petclinic.owner.OwnerId;
+import org.springframework.samples.petclinic.owner.OwnerNotFound;
+import org.springframework.samples.petclinic.owner.Pet;
+import org.springframework.samples.petclinic.owner.PetId;
+import org.springframework.samples.petclinic.owner.PetNotFound;
+import org.springframework.samples.petclinic.owner.PetType;
+import org.springframework.samples.petclinic.owner.persistence.OwnerRepository;
+import org.springframework.samples.petclinic.owner.persistence.PetTypeRepository;
 
 import java.util.Collection;
 
@@ -46,7 +56,7 @@ import dev.zazr.control.Option;
  */
 @Controller
 @RequestMapping("/owners/{ownerId}")
-class PetController {
+public class PetController {
 
 	private static final String VIEWS_PETS_CREATE_OR_UPDATE_FORM = "pets/createOrUpdatePetForm";
 

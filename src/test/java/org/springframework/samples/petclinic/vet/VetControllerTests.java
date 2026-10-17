@@ -16,6 +16,9 @@
 
 package org.springframework.samples.petclinic.vet;
 
+import org.springframework.samples.petclinic.vet.persistence.VetRepository;
+import org.springframework.samples.petclinic.vet.web.VetController;
+
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.BeforeEach;
 

@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.samples.petclinic.owner;
+package org.springframework.samples.petclinic.owner.persistence;
+
+import org.springframework.samples.petclinic.owner.PetType;
+import org.springframework.samples.petclinic.owner.PetTypeId;
 
 import java.util.List;
 

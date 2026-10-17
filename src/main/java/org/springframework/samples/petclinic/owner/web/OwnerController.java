@@ -13,7 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.samples.petclinic.owner;
+package org.springframework.samples.petclinic.owner.web;
+
+import org.springframework.samples.petclinic.owner.Owner;
+import org.springframework.samples.petclinic.owner.OwnerId;
+import org.springframework.samples.petclinic.owner.OwnerNotFound;
+import org.springframework.samples.petclinic.owner.persistence.OwnerRepository;
 
 import java.util.List;
 import java.util.Objects;
@@ -53,7 +58,7 @@ import dev.zazr.control.Option;
  * @author Wick Dynex
  */
 @Controller
-class OwnerController {
+public class OwnerController {
 
 	private static final String VIEWS_OWNER_CREATE_OR_UPDATE_FORM = "owners/createOrUpdateOwnerForm";
 

@@ -16,6 +16,9 @@
 
 package org.springframework.samples.petclinic.owner;
 
+import org.springframework.samples.petclinic.owner.persistence.OwnerRepository;
+import org.springframework.samples.petclinic.owner.web.OwnerController;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;

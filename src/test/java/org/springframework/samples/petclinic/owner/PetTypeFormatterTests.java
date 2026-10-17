@@ -16,6 +16,9 @@
 
 package org.springframework.samples.petclinic.owner;
 
+import org.springframework.samples.petclinic.owner.persistence.PetTypeRepository;
+import org.springframework.samples.petclinic.owner.web.PetTypeFormatter;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 

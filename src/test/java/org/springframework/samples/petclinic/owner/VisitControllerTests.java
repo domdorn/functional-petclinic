@@ -16,6 +16,9 @@
 
 package org.springframework.samples.petclinic.owner;
 
+import org.springframework.samples.petclinic.owner.persistence.OwnerRepository;
+import org.springframework.samples.petclinic.owner.web.VisitController;
+
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
