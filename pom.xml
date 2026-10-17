@@ -204,6 +204,12 @@
         <configuration>
           <!-- @{argLine} preserves the jacoco agent argLine and appends preview flag -->
           <argLine>@{argLine} --enable-preview</argLine>
+          <!-- Tests pick their own profile (@ActiveProfiles) or default to H2. Clear any
+               ambient SPRING_PROFILES_ACTIVE (e.g. postgres from .envrc for the demo) so
+               it cannot leak into the forked test JVM. -->
+          <environmentVariables>
+            <SPRING_PROFILES_ACTIVE/>
+          </environmentVariables>
         </configuration>
       </plugin>
       <plugin>
@@ -211,6 +217,9 @@
         <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
           <argLine>@{argLine} --enable-preview</argLine>
+          <environmentVariables>
+            <SPRING_PROFILES_ACTIVE/>
+          </environmentVariables>
         </configuration>
       </plugin>
       <plugin>
