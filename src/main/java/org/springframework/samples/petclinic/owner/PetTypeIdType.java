@@ -15,7 +15,7 @@
  */
 package org.springframework.samples.petclinic.owner;
 
-import org.springframework.samples.petclinic.functional.IntegerIdType;
+import com.dominikdorn.zazr.jpa.IntegerIdType;
 
 /**
  * Hibernate {@link org.hibernate.usertype.UserType} mapping {@link PetTypeId} to the

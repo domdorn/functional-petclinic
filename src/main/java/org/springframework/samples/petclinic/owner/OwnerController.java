@@ -18,7 +18,7 @@ package org.springframework.samples.petclinic.owner;
 import java.util.List;
 import java.util.Objects;
 
-import org.springframework.samples.petclinic.functional.DomainError;
+import com.dominikdorn.zazr.error.DomainError;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

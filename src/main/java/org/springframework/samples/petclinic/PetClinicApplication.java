@@ -18,6 +18,7 @@ package org.springframework.samples.petclinic;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.ImportRuntimeHints;
 
 /**
@@ -26,6 +27,9 @@ import org.springframework.context.annotation.ImportRuntimeHints;
  * @author Dave Syer
  */
 @SpringBootApplication
+// Include the reusable zazr JPA package so its autoApply OptionConverter is a managed
+// type.
+@EntityScan({ "org.springframework.samples.petclinic", "com.dominikdorn.zazr.jpa" })
 @ImportRuntimeHints(PetClinicRuntimeHints.class)
 public class PetClinicApplication {
 

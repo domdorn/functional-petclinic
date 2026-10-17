@@ -46,3 +46,9 @@ out/
 _site/
 *.css
 !petclinic.css
+
+# Local/demo-only, not part of the project history
+.envrc
+gotchas.md
+01_docker_up.sh
+02_start_app.sh

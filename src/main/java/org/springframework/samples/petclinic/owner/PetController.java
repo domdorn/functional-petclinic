@@ -18,8 +18,8 @@ package org.springframework.samples.petclinic.owner;
 import java.util.Collection;
 
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.samples.petclinic.functional.DomainError;
-import org.springframework.samples.petclinic.functional.Validations;
+import com.dominikdorn.zazr.error.DomainError;
+import com.dominikdorn.zazr.error.Validations;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 import org.springframework.validation.BindingResult;

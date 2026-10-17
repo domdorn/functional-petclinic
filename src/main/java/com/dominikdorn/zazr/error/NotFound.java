@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.samples.petclinic.functional;
+package com.dominikdorn.zazr.error;
 
 /**
  * Category of {@link DomainError} for an entity that was requested by id but does not

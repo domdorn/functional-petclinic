@@ -15,16 +15,9 @@
  */
 
 /**
- * Functional programming infrastructure for the application: domain errors modelled as
- * values and the Spring MVC glue that renders a controller's
- * {@code Either<DomainError, ?>}.
- *
- * <p>
- * This package is {@link org.jspecify.annotations.NullMarked}: every type is non-null by
- * default. A value that may be absent is an {@link dev.zazr.control.Option}, never
- * {@code null}.
+ * Reusable zazr + Spring glue (candidate for extraction into a standalone library).
  */
 @NullMarked
-package org.springframework.samples.petclinic.functional;
+package com.dominikdorn.zazr.jpa;
 
 import org.jspecify.annotations.NullMarked;
