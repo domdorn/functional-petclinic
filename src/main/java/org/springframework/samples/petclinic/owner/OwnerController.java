@@ -20,6 +20,7 @@ import java.util.Objects;
 
 import org.springframework.samples.petclinic.functional.DomainError;
 import org.springframework.data.domain.Page;
+import org.springframework.http.MediaType;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import jakarta.validation.Valid;
@@ -187,6 +189,20 @@ class OwnerController {
 		return this.owners.find(id)
 			.<DomainError>toEither(() -> new OwnerNotFound(id))
 			.map(owner -> new ModelAndView("owners/ownerDetails").addObject(owner));
+	}
+
+	/**
+	 * JSON variant of {@link #showOwner}: the same {@code Either} value rendered as a
+	 * body. {@code Right} is the owner as JSON (200); {@code Left} is the error as JSON
+	 * with its mapped status (404).
+	 * @param ownerId the owner id
+	 * @return the owner on the right, or an {@link OwnerNotFound} on the left
+	 */
+	@GetMapping(path = "/owners/{ownerId}/summary", produces = MediaType.APPLICATION_JSON_VALUE)
+	@ResponseBody
+	public Either<DomainError, Owner> ownerSummary(@PathVariable("ownerId") int ownerId) {
+		OwnerId id = new OwnerId(ownerId);
+		return this.owners.find(id).<DomainError>toEither(() -> new OwnerNotFound(id));
 	}
 
 }

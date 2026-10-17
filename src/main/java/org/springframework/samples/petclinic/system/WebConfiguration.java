@@ -70,16 +70,6 @@ public class WebConfiguration implements WebMvcConfigurer {
 	}
 
 	/**
-	 * Registers the handler that lets controllers return {@code Either<DomainError, ?>},
-	 * rendering business failures as values instead of thrown exceptions.
-	 * @param handlers the list of custom return value handlers
-	 */
-	@Override
-	public void addReturnValueHandlers(List<HandlerMethodReturnValueHandler> handlers) {
-		handlers.add(new EitherReturnValueHandler(new DomainErrorLeftHandler()));
-	}
-
-	/**
 	 * Registers converters that bind path variables to typed ids, so controllers can
 	 * declare parameters such as {@code Option<OwnerId>} instead of a raw {@code int}.
 	 * @param registry the formatter/converter registry
@@ -91,26 +81,39 @@ public class WebConfiguration implements WebMvcConfigurer {
 	}
 
 	/**
-	 * Prepends {@link OptionPathVariableArgumentResolver} ahead of Spring's built-in
-	 * argument resolvers so that {@code @PathVariable Option<T>} parameters resolve to
-	 * {@link dev.zazr.control.Option} (empty when absent) instead of {@code null}. The
-	 * built-in {@code PathVariableMethodArgumentResolver} claims every
-	 * {@code @PathVariable} parameter, so custom resolvers (which are consulted only
-	 * afterwards) must be inserted at the front of the adapter's list.
-	 * @return a post-processor that reorders the handler adapter's argument resolvers
+	 * Prepends the zazr handlers ahead of Spring's built-in ones on the handler adapter:
+	 * <ul>
+	 * <li>{@link OptionPathVariableArgumentResolver} so {@code @PathVariable Option<T>}
+	 * resolves to {@link dev.zazr.control.Option} (empty when absent) rather than
+	 * {@code null} — the built-in resolver claims every {@code @PathVariable}, so ours
+	 * must come first.</li>
+	 * <li>{@link EitherReturnValueHandler} so {@code Either} returns (including on
+	 * {@code @ResponseBody}/JSON endpoints) are unwrapped before the built-in body
+	 * processor would serialize the raw {@code Either}. It is given the adapter's own
+	 * message converters so JSON bodies render exactly as elsewhere.</li>
+	 * </ul>
+	 * @return a post-processor that reorders the handler adapter's resolvers/handlers
 	 */
 	@Bean
-	static BeanPostProcessor optionPathVariableResolverRegistrar() {
+	static BeanPostProcessor zazrWebHandlersRegistrar() {
 		return new BeanPostProcessor() {
 			@Override
 			public Object postProcessAfterInitialization(Object bean, String beanName) {
 				if (bean instanceof RequestMappingHandlerAdapter adapter) {
-					List<HandlerMethodArgumentResolver> existing = adapter.getArgumentResolvers();
-					if (existing != null) {
-						List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>();
-						resolvers.add(new OptionPathVariableArgumentResolver());
-						resolvers.addAll(existing);
-						adapter.setArgumentResolvers(resolvers);
+					List<HandlerMethodArgumentResolver> resolvers = adapter.getArgumentResolvers();
+					if (resolvers != null) {
+						List<HandlerMethodArgumentResolver> withOption = new ArrayList<>();
+						withOption.add(new OptionPathVariableArgumentResolver());
+						withOption.addAll(resolvers);
+						adapter.setArgumentResolvers(withOption);
+					}
+					List<HandlerMethodReturnValueHandler> handlers = adapter.getReturnValueHandlers();
+					if (handlers != null) {
+						List<HandlerMethodReturnValueHandler> withEither = new ArrayList<>();
+						withEither.add(new EitherReturnValueHandler(adapter.getMessageConverters(),
+								new DomainErrorLeftHandler()));
+						withEither.addAll(handlers);
+						adapter.setReturnValueHandlers(withEither);
 					}
 				}
 				return bean;

@@ -15,39 +15,53 @@
  */
 package com.dominikdorn.zazr.web;
 
+import java.util.List;
+
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.MethodParameter;
+import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor;
 
 import dev.zazr.control.Either;
 import dev.zazr.control.Either.Left;
 import dev.zazr.control.Either.Right;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 /**
  * Lets a Spring WebMVC controller return {@code Either<L, R>} so that failures travel as
- * values rather than exceptions.
+ * values rather than exceptions. Works for both view-rendering and {@code @ResponseBody}
+ * / {@code @RestController} (JSON) endpoints.
+ *
+ * <ul>
+ * <li><b>Body endpoints</b> — the {@code Right} value is written with the message
+ * converters (e.g. JSON); the {@code Left} is mapped by the {@link EitherLeftHandler} to
+ * a status and a model, which is written as the body.</li>
+ * <li><b>View endpoints</b> — the {@code Right} value is a view name ({@link String}) or
+ * a {@link ModelAndView}; the {@code Left} becomes the status + view + model from the
+ * {@link EitherLeftHandler}.</li>
+ * </ul>
  *
  * <p>
- * The {@code Right} value is rendered as the controller would render it directly: a view
- * name ({@link String}) or a {@link ModelAndView}. The {@code Left} value carries no
- * assumption about its type — this handler stays error-model-agnostic and delegates to
- * the application-supplied {@link EitherLeftHandler}, which maps the left value to an
- * HTTP status, a view and a model ({@link LeftRendering}).
- *
- * <p>
- * Register it in a
- * {@link org.springframework.web.servlet.config.annotation.WebMvcConfigurer}, passing the
- * application's {@link EitherLeftHandler}.
+ * It must be registered <em>ahead</em> of the built-in handlers so it claims
+ * {@code @ResponseBody Either} returns before {@code RequestResponseBodyMethodProcessor}
+ * would serialize the raw {@code Either}.
  */
 public class EitherReturnValueHandler implements HandlerMethodReturnValueHandler {
 
 	private final EitherLeftHandler leftHandler;
 
-	public EitherReturnValueHandler(EitherLeftHandler leftHandler) {
+	private final RequestResponseBodyMethodProcessor bodyProcessor;
+
+	public EitherReturnValueHandler(List<HttpMessageConverter<?>> messageConverters, EitherLeftHandler leftHandler) {
 		this.leftHandler = leftHandler;
+		this.bodyProcessor = new RequestResponseBodyMethodProcessor(messageConverters);
 	}
 
 	@Override
@@ -57,7 +71,7 @@ public class EitherReturnValueHandler implements HandlerMethodReturnValueHandler
 
 	@Override
 	public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
-			ModelAndViewContainer mavContainer, NativeWebRequest webRequest) {
+			ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
 		if (returnValue == null) {
 			// A null Either is a programming error, but tolerate it as "nothing to
 			// render".
@@ -65,6 +79,37 @@ public class EitherReturnValueHandler implements HandlerMethodReturnValueHandler
 			return;
 		}
 		Either<?, ?> either = (Either<?, ?>) returnValue;
+		if (writesBody(returnType)) {
+			handleBody(either, returnType, mavContainer, webRequest);
+		}
+		else {
+			handleView(either, mavContainer);
+		}
+	}
+
+	private boolean writesBody(MethodParameter returnType) {
+		return returnType.hasMethodAnnotation(ResponseBody.class)
+				|| AnnotatedElementUtils.hasAnnotation(returnType.getContainingClass(), ResponseBody.class);
+	}
+
+	private void handleBody(Either<?, ?> either, MethodParameter returnType, ModelAndViewContainer mavContainer,
+			NativeWebRequest webRequest) throws Exception {
+		// The Right generic of Either<L, R>; the body is serialized against this type.
+		MethodParameter bodyType = returnType.nested();
+		switch (either) {
+			case Right(var value) -> this.bodyProcessor.handleReturnValue(value, bodyType, mavContainer, webRequest);
+			case Left(var error) -> {
+				LeftRendering rendering = this.leftHandler.render(error);
+				HttpServletResponse response = webRequest.getNativeResponse(HttpServletResponse.class);
+				if (response != null) {
+					response.setStatus(rendering.status().value());
+				}
+				this.bodyProcessor.handleReturnValue(rendering.model(), bodyType, mavContainer, webRequest);
+			}
+		}
+	}
+
+	private void handleView(Either<?, ?> either, ModelAndViewContainer mavContainer) {
 		switch (either) {
 			case Right(var value) -> renderSuccess(value, mavContainer);
 			case Left(var error) -> renderLeft(error, mavContainer);

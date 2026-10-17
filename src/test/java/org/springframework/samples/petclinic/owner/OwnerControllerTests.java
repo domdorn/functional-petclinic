@@ -32,6 +32,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.http.MediaType;
+
 import dev.zazr.control.Option;
 
 import static org.hamcrest.Matchers.containsString;
@@ -304,6 +306,26 @@ class OwnerControllerTests {
 			.andExpect(content().string(containsString("/1/edit")))
 			.andExpect(content().string(not(containsString("OwnerId["))))
 			.andExpect(content().string(not(containsString("PetId["))));
+	}
+
+	@Test
+	void ownerSummaryRightIsJson() throws Exception {
+		mockMvc.perform(get("/owners/{ownerId}/summary", TEST_OWNER_ID).accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.id").value(TEST_OWNER_ID))
+			.andExpect(jsonPath("$.lastName").value("Franklin"));
+	}
+
+	@Test
+	void ownerSummaryLeftIsJsonErrorWithStatus() throws Exception {
+		int unknownId = 999;
+		given(this.owners.find(new OwnerId(unknownId))).willReturn(Option.none());
+
+		mockMvc.perform(get("/owners/{ownerId}/summary", unknownId).accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isNotFound())
+			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.message").value(containsString(Integer.toString(unknownId))));
 	}
 
 	@Test
