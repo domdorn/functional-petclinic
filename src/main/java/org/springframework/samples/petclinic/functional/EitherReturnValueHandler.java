@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dominikdorn.zazr.web;
+package org.springframework.samples.petclinic.functional;
 
-import com.dominikdorn.zazr.error.DomainError;
-import com.dominikdorn.zazr.error.NotFound;
-import com.dominikdorn.zazr.error.ValidationFailed;
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;

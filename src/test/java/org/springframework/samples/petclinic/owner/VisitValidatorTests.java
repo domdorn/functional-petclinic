@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.LocalDate;
 
 import org.junit.jupiter.api.Test;
-import com.dominikdorn.zazr.error.Violation;
+import org.springframework.samples.petclinic.functional.Violation;
 
 import dev.zazr.control.Validation;
 import dev.zazr.control.Validation.Invalid;

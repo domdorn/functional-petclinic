@@ -18,7 +18,7 @@ package org.springframework.samples.petclinic.owner;
 import java.time.LocalDate;
 import java.util.Objects;
 
-import com.dominikdorn.zazr.error.Violation;
+import org.springframework.samples.petclinic.functional.Violation;
 import org.springframework.util.StringUtils;
 
 import dev.zazr.control.Validation;

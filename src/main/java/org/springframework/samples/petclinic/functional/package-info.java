@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dominikdorn.zazr.error;
 
 /**
- * Category of {@link DomainError} for an entity that was requested by id but does not
- * exist. Rendered as HTTP 404.
- *
- * <p>
- * Concrete cases are per-entity {@code value record}s, e.g.
- * {@code value record OwnerNotFound(OwnerId id) implements NotFound}.
+ * The application's errors-as-values vocabulary and the Spring MVC glue that renders it:
+ * {@code DomainError}/{@code NotFound}/{@code ValidationFailed}, the {@code Either}
+ * return-value handler, and the {@code Validation} bridge. This is app-specific (the
+ * error taxonomy is a domain choice); the reusable zazr adapters live in
+ * {@code com.dominikdorn.zazr}.
  */
-public interface NotFound extends DomainError {
+@NullMarked
+package org.springframework.samples.petclinic.functional;
 
-}
+import org.jspecify.annotations.NullMarked;

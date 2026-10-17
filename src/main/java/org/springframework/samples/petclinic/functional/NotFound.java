@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.samples.petclinic.functional;
 
 /**
- * Reusable zazr + Spring glue (candidate for extraction into a standalone library).
+ * Category of {@link DomainError} for an entity that was requested by id but does not
+ * exist. Rendered as HTTP 404.
+ *
+ * <p>
+ * Concrete cases are per-entity {@code value record}s, e.g.
+ * {@code value record OwnerNotFound(OwnerId id) implements NotFound}.
  */
-@NullMarked
-package com.dominikdorn.zazr.error;
+public interface NotFound extends DomainError {
 
-import org.jspecify.annotations.NullMarked;
+}

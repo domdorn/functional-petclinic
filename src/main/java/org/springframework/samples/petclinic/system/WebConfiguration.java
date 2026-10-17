@@ -4,7 +4,7 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
-import com.dominikdorn.zazr.web.EitherReturnValueHandler;
+import org.springframework.samples.petclinic.functional.EitherReturnValueHandler;
 import com.dominikdorn.zazr.web.OptionPathVariableArgumentResolver;
 import org.springframework.samples.petclinic.owner.StringToOwnerIdConverter;
 import org.springframework.samples.petclinic.owner.StringToPetIdConverter;

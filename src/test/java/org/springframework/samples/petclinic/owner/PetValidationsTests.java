@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import com.dominikdorn.zazr.error.Violation;
+import org.springframework.samples.petclinic.functional.Violation;
 
 import dev.zazr.control.Validation;
 import dev.zazr.control.Validation.Invalid;

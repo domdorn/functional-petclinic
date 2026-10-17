@@ -18,8 +18,8 @@ package org.springframework.samples.petclinic.owner;
 import java.time.LocalDate;
 import java.util.Map;
 
-import com.dominikdorn.zazr.error.DomainError;
-import com.dominikdorn.zazr.error.Validations;
+import org.springframework.samples.petclinic.functional.DomainError;
+import org.springframework.samples.petclinic.functional.Validations;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;

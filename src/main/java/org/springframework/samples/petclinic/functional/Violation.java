@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dominikdorn.zazr.error;
+package org.springframework.samples.petclinic.functional;
 
 /**
  * A single validation failure as a value: which {@code field} failed, a stable

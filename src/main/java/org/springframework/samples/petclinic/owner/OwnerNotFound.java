@@ -15,7 +15,7 @@
  */
 package org.springframework.samples.petclinic.owner;
 
-import com.dominikdorn.zazr.error.NotFound;
+import org.springframework.samples.petclinic.functional.NotFound;
 
 /**
  * The {@link Owner} with the given {@link OwnerId} does not exist. Carried as a value on

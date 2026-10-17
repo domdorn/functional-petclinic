@@ -15,7 +15,7 @@
  */
 package org.springframework.samples.petclinic.owner;
 
-import com.dominikdorn.zazr.error.NotFound;
+import org.springframework.samples.petclinic.functional.NotFound;
 
 /**
  * No {@link Pet} with the given {@link PetId} belongs to the owner with the given
