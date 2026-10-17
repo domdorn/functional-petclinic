@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Objects;
 
 import org.springframework.samples.petclinic.functional.DomainError;
+import org.springframework.samples.petclinic.report.OwnerReport;
+import org.springframework.samples.petclinic.report.OwnerReportService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.data.domain.PageRequest;
@@ -57,8 +59,11 @@ class OwnerController {
 
 	private final OwnerRepository owners;
 
-	public OwnerController(OwnerRepository owners) {
+	private final OwnerReportService ownerReports;
+
+	public OwnerController(OwnerRepository owners, OwnerReportService ownerReports) {
 		this.owners = owners;
+		this.ownerReports = ownerReports;
 	}
 
 	@InitBinder
@@ -203,6 +208,20 @@ class OwnerController {
 	public Either<DomainError, Owner> ownerSummary(@PathVariable("ownerId") int ownerId) {
 		OwnerId id = new OwnerId(ownerId);
 		return this.owners.find(id).<DomainError>toEither(() -> new OwnerNotFound(id));
+	}
+
+	/**
+	 * Per-owner care report as JSON: a summary line per pet plus accumulated data-quality
+	 * warnings. {@code Right} is the report (200); {@code Left} is an
+	 * {@link OwnerNotFound} rendered as an RFC-7807 problem (404).
+	 * @param ownerId the owner id
+	 * @return the report on the right, or an {@link OwnerNotFound} on the left
+	 */
+	@GetMapping(path = "/owners/{ownerId}/report", produces = MediaType.APPLICATION_JSON_VALUE)
+	@ResponseBody
+	public Either<DomainError, OwnerReport> ownerReport(@PathVariable("ownerId") int ownerId) {
+		OwnerId id = new OwnerId(ownerId);
+		return this.owners.find(id).<DomainError>toEither(() -> new OwnerNotFound(id)).map(this.ownerReports::build);
 	}
 
 }

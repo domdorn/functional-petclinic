@@ -34,7 +34,12 @@ import java.util.List;
 
 import org.springframework.http.MediaType;
 
+import dev.zazr.collection.Vector;
 import dev.zazr.control.Option;
+
+import org.springframework.samples.petclinic.functional.Violation;
+import org.springframework.samples.petclinic.report.OwnerReport;
+import org.springframework.samples.petclinic.report.PetSummary;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.emptyIterable;
@@ -73,6 +78,9 @@ class OwnerControllerTests {
 
 	@MockitoBean
 	private OwnerRepository owners;
+
+	@MockitoBean
+	private org.springframework.samples.petclinic.report.OwnerReportService ownerReports;
 
 	private Owner george() {
 		Owner george = new Owner();
@@ -326,6 +334,34 @@ class OwnerControllerTests {
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.status").value(404))
 			.andExpect(jsonPath("$.title").value("Not Found"))
+			.andExpect(jsonPath("$.detail").value(containsString(Integer.toString(unknownId))));
+	}
+
+	@Test
+	void ownerReportRightIsJson() throws Exception {
+		OwnerReport report = new OwnerReport("George Franklin",
+				Vector.of(new PetSummary("Max", "dog", Option.some(3), Option.some(LocalDate.parse("2026-08-20")), 2)),
+				Vector.of(Violation.global("pets.quality", "Basil has no birth date on file")));
+		given(this.ownerReports.build(any())).willReturn(report);
+
+		mockMvc.perform(get("/owners/{ownerId}/report", TEST_OWNER_ID).accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.owner").value("George Franklin"))
+			.andExpect(jsonPath("$.pets[0].name").value("Max"))
+			.andExpect(jsonPath("$.pets[0].age").value(3))
+			.andExpect(jsonPath("$.pets[0].lastVisit").value("2026-08-20"))
+			.andExpect(jsonPath("$.warnings[0].message").value("Basil has no birth date on file"));
+	}
+
+	@Test
+	void ownerReportUnknownIsProblemDetail() throws Exception {
+		int unknownId = 777;
+		given(this.owners.find(new OwnerId(unknownId))).willReturn(Option.none());
+
+		mockMvc.perform(get("/owners/{ownerId}/report", unknownId).accept(MediaType.APPLICATION_JSON))
+			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("$.status").value(404))
 			.andExpect(jsonPath("$.detail").value(containsString(Integer.toString(unknownId))));
 	}
 

@@ -77,6 +77,18 @@
     </tr>
 
   </table>
+
+  <!--
+    Care report panel: text-free skeleton filled by owner-report.js over XHR from
+    /owners/{id}/report (the Either<DomainError, OwnerReport> JSON endpoint). All labels
+    are written client-side, so there are no hard-coded strings to translate here.
+  -->
+  <br />
+  <h2 id="care-report-heading"></h2>
+  <div id="owner-report-status" class="text-muted"></div>
+  <div id="owner-report"></div>
+  <script th:src="@{/resources/js/owner-report.js}"></script>
+
   <script>
     // Function to hide the success and error messages after 3 seconds
     function hideMessages() {
