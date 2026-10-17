@@ -30,4 +30,13 @@ public value record OwnerId(int id) implements Serializable {
 		return this.id;
 	}
 
+	/**
+	 * The plain numeric id, so Thymeleaf URL expressions (e.g. {@code ${owner.id}})
+	 * and logging render it as the number rather than the record's default form.
+	 */
+	@Override
+	public String toString() {
+		return Integer.toString(this.id);
+	}
+
 }

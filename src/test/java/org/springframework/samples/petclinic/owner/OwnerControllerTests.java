@@ -34,6 +34,7 @@ import java.util.List;
 
 import dev.zazr.control.Option;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.emptyIterable;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
@@ -294,6 +295,15 @@ class OwnerControllerTests {
 			.andExpect(model().attribute("owner",
 					hasProperty("pets", hasItem(hasProperty("visits", iterableWithSize(greaterThan(0)))))))
 			.andExpect(view().name("owners/ownerDetails"));
+	}
+
+	@Test
+	void showOwnerRendersTypedIdsAsNumbersInLinks() throws Exception {
+		mockMvc.perform(get("/owners/{ownerId}", TEST_OWNER_ID))
+			.andExpect(status().isOk())
+			.andExpect(content().string(containsString("/1/edit")))
+			.andExpect(content().string(not(containsString("OwnerId["))))
+			.andExpect(content().string(not(containsString("PetId["))));
 	}
 
 	@Test
