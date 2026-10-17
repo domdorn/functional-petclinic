@@ -53,6 +53,12 @@
       <artifactId>zazr-core</artifactId>
       <version>${zazr.version}</version>
     </dependency>
+    <!-- Teaches Jackson to read/write zazr types (Option, Either, collections) as JSON -->
+    <dependency>
+      <groupId>dev.zazr</groupId>
+      <artifactId>zazr-jackson</artifactId>
+      <version>${zazr.version}</version>
+    </dependency>
 
     <!-- Spring and Spring Boot dependencies -->
     <dependency>
