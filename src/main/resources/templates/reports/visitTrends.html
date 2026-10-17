@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+
+<html xmlns:th="https://www.thymeleaf.org" th:replace="~{fragments/layout :: layout (~{::body},'reports')}">
+
+<body>
+
+  <!--
+    Deliberately a text-free skeleton: every label and every row below is written by
+    reports.js from the JSON endpoint (/api/reports/visit-trends). Nothing on this page is
+    rendered server-side from the data — that is the whole point of the XHR approach.
+  -->
+
+  <h2 id="report-heading"></h2>
+  <p id="report-subtitle" class="text-muted"></p>
+
+  <div id="report-status" class="text-muted"></div>
+
+  <div id="report" style="display: none;">
+
+    <div id="warnings" class="report-warnings" style="display: none;"></div>
+
+    <h3 id="trend-title"></h3>
+    <table id="trend-table" class="table table-striped">
+      <thead>
+        <tr id="trend-head"></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h3 id="type-title"></h3>
+    <table id="type-table" class="table table-striped">
+      <thead>
+        <tr id="type-head"></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+  </div>
+
+  <style>
+    .report-warnings {
+      background: #fff3cd;
+      border: 1px solid #ffecb5;
+      color: #664d03;
+      border-radius: 6px;
+      padding: .75rem 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .report-warnings ul { margin: 0; padding-left: 1.25rem; }
+    .report-bar {
+      display: inline-block;
+      height: 14px;
+      background: #6db33f;
+      border-radius: 3px;
+      vertical-align: middle;
+    }
+    .report-delta-up { color: #198754; }
+    .report-delta-down { color: #dc3545; }
+    .report-delta-none { color: #6c757d; }
+  </style>
+
+  <script th:src="@{/resources/js/reports.js}"></script>
+
+</body>
+
+</html>
