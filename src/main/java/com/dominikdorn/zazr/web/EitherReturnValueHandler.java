@@ -13,14 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.samples.petclinic.functional.web;
+package com.dominikdorn.zazr.web;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.MethodParameter;
-import org.springframework.samples.petclinic.functional.DomainError;
-import org.springframework.samples.petclinic.functional.NotFound;
-import org.springframework.samples.petclinic.functional.ValidationFailed;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.method.support.ModelAndViewContainer;
@@ -31,23 +27,28 @@ import dev.zazr.control.Either.Left;
 import dev.zazr.control.Either.Right;
 
 /**
- * Lets a Spring MVC controller return {@code Either<DomainError, V>} so that failures
- * travel as values rather than exceptions.
+ * Lets a Spring WebMVC controller return {@code Either<L, R>} so that failures travel as
+ * values rather than exceptions.
  *
  * <p>
  * The {@code Right} value is rendered as the controller would render it directly: a view
- * name ({@link String}) or a {@link ModelAndView}. The {@code Left} value is a
- * {@link DomainError}; its category (e.g. {@link NotFound}) selects an HTTP status, and
- * it is shown through the shared {@code error} view with its
- * {@link DomainError#message()} in the model.
+ * name ({@link String}) or a {@link ModelAndView}. The {@code Left} value carries no
+ * assumption about its type — this handler stays error-model-agnostic and delegates to
+ * the application-supplied {@link EitherLeftHandler}, which maps the left value to an
+ * HTTP status, a view and a model ({@link LeftRendering}).
  *
  * <p>
  * Register it in a
- * {@link org.springframework.web.servlet.config.annotation.WebMvcConfigurer}.
+ * {@link org.springframework.web.servlet.config.annotation.WebMvcConfigurer}, passing the
+ * application's {@link EitherLeftHandler}.
  */
 public class EitherReturnValueHandler implements HandlerMethodReturnValueHandler {
 
-	private static final String ERROR_VIEW = "error";
+	private final EitherLeftHandler leftHandler;
+
+	public EitherReturnValueHandler(EitherLeftHandler leftHandler) {
+		this.leftHandler = leftHandler;
+	}
 
 	@Override
 	public boolean supportsReturnType(MethodParameter returnType) {
@@ -66,7 +67,7 @@ public class EitherReturnValueHandler implements HandlerMethodReturnValueHandler
 		Either<?, ?> either = (Either<?, ?>) returnValue;
 		switch (either) {
 			case Right(var value) -> renderSuccess(value, mavContainer);
-			case Left(var error) -> renderError((DomainError) error, mavContainer);
+			case Left(var error) -> renderLeft(error, mavContainer);
 		}
 	}
 
@@ -90,15 +91,11 @@ public class EitherReturnValueHandler implements HandlerMethodReturnValueHandler
 		}
 	}
 
-	private void renderError(DomainError error, ModelAndViewContainer mavContainer) {
-		HttpStatus status = switch (error) {
-			case NotFound ignored -> HttpStatus.NOT_FOUND;
-			case ValidationFailed ignored -> HttpStatus.BAD_REQUEST;
-			default -> HttpStatus.INTERNAL_SERVER_ERROR;
-		};
-		mavContainer.setStatus(status);
-		mavContainer.addAttribute("message", error.message());
-		mavContainer.setViewName(ERROR_VIEW);
+	private void renderLeft(Object left, ModelAndViewContainer mavContainer) {
+		LeftRendering rendering = this.leftHandler.render(left);
+		mavContainer.setStatus(rendering.status());
+		mavContainer.addAllAttributes(rendering.model());
+		mavContainer.setViewName(rendering.viewName());
 	}
 
 }

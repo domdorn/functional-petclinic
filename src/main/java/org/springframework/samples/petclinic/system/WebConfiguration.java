@@ -4,8 +4,9 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
-import org.springframework.samples.petclinic.functional.web.EitherReturnValueHandler;
+import com.dominikdorn.zazr.web.EitherReturnValueHandler;
 import com.dominikdorn.zazr.web.OptionPathVariableArgumentResolver;
+import org.springframework.samples.petclinic.functional.web.DomainErrorLeftHandler;
 import org.springframework.samples.petclinic.owner.StringToOwnerIdConverter;
 import org.springframework.samples.petclinic.owner.StringToPetIdConverter;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -75,7 +76,7 @@ public class WebConfiguration implements WebMvcConfigurer {
 	 */
 	@Override
 	public void addReturnValueHandlers(List<HandlerMethodReturnValueHandler> handlers) {
-		handlers.add(new EitherReturnValueHandler());
+		handlers.add(new EitherReturnValueHandler(new DomainErrorLeftHandler()));
 	}
 
 	/**
