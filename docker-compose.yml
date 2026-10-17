@@ -1,6 +1,10 @@
 services:
   mysql:
     image: mysql:9.7
+    # Disabled by default so only postgres runs (avoids ambiguous JdbcConnectionDetails in
+    # spring-boot-docker-compose). Start it explicitly with: docker compose --profile mysql up
+    profiles:
+      - mysql
     ports:
       - "53306:3306"
     environment:
