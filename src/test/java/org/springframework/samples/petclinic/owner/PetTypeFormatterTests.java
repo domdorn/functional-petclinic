@@ -21,12 +21,14 @@ import static org.mockito.BDDMockito.given;
 
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+
+import dev.zazr.collection.Vector;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -77,9 +79,9 @@ class PetTypeFormatterTests {
 
 	/**
 	 * Helper method to produce some sample pet types just for test purpose
-	 * @return {@link Collection} of {@link PetType}
+	 * @return {@link Vector} of {@link PetType}
 	 */
-	private List<PetType> makePetTypes() {
+	private Vector<PetType> makePetTypes() {
 		List<PetType> petTypes = new ArrayList<>();
 		petTypes.add(new PetType() {
 			{
@@ -91,7 +93,7 @@ class PetTypeFormatterTests {
 				setName("Bird");
 			}
 		});
-		return petTypes;
+		return Vector.ofAll(petTypes);
 	}
 
 }

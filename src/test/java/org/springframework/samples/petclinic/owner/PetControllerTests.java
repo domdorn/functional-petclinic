@@ -29,10 +29,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
-import java.util.List;
 
 import org.springframework.dao.DataIntegrityViolationException;
 
+import dev.zazr.collection.Vector;
 import dev.zazr.control.Option;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -73,7 +73,7 @@ class PetControllerTests {
 		PetType cat = new PetType();
 		cat.setId(new PetTypeId(3));
 		cat.setName("hamster");
-		given(this.types.findPetTypes()).willReturn(List.of(cat));
+		given(this.types.findPetTypes()).willReturn(Vector.of(cat));
 
 		Owner owner = new Owner();
 		Pet pet = new Pet();

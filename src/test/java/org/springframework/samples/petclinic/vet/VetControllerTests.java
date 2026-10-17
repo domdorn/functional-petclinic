@@ -18,6 +18,9 @@ package org.springframework.samples.petclinic.vet;
 
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.BeforeEach;
+
+import dev.zazr.collection.Vector;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,7 +78,7 @@ class VetControllerTests {
 
 	@BeforeEach
 	void setup() {
-		given(this.vets.findAll()).willReturn(Lists.newArrayList(james(), helen()));
+		given(this.vets.findAll()).willReturn(Vector.of(james(), helen()));
 		given(this.vets.findAll(any(Pageable.class)))
 			.willReturn(new PageImpl<Vet>(Lists.newArrayList(james(), helen())));
 

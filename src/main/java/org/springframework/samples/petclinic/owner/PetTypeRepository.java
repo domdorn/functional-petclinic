@@ -21,6 +21,8 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import dev.zazr.collection.Vector;
+
 /**
  * Repository class for <code>PetType</code> domain objects.
  *
@@ -30,10 +32,19 @@ import org.springframework.data.jpa.repository.Query;
 public interface PetTypeRepository extends JpaRepository<PetType, PetTypeId> {
 
 	/**
-	 * Retrieve all {@link PetType}s from the data store.
-	 * @return a Collection of {@link PetType}s.
+	 * Spring Data query that materializes the rows; prefer {@link #findPetTypes()} which
+	 * exposes the result as an immutable zazr {@link Vector}.
+	 * @return the pet types as a java list
 	 */
 	@Query("SELECT ptype FROM PetType ptype ORDER BY ptype.name")
-	List<PetType> findPetTypes();
+	List<PetType> findPetTypesList();
+
+	/**
+	 * Retrieve all {@link PetType}s from the data store.
+	 * @return an immutable {@link Vector} of {@link PetType}s, ordered by name
+	 */
+	default Vector<PetType> findPetTypes() {
+		return Vector.ofAll(findPetTypesList());
+	}
 
 }

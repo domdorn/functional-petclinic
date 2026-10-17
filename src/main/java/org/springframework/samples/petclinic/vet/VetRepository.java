@@ -19,10 +19,13 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+
+import dev.zazr.collection.Vector;
 
 /**
  * Repository class for <code>Vet</code> domain objects All method names are compliant
@@ -38,12 +41,23 @@ import java.util.Collection;
 public interface VetRepository extends Repository<Vet, VetId> {
 
 	/**
-	 * Retrieve all <code>Vet</code>s from the data store.
-	 * @return a <code>Collection</code> of <code>Vet</code>s
+	 * Spring Data query that materializes the rows; prefer {@link #findAll()} which
+	 * exposes the result as an immutable zazr {@link Vector}.
+	 * @return the vets as a java collection
+	 * @throws DataAccessException if the store is unavailable
 	 */
+	@Query("SELECT vet FROM Vet vet")
 	@Transactional(readOnly = true)
 	@Cacheable("vets")
-	Collection<Vet> findAll() throws DataAccessException;
+	Collection<Vet> findAllVets() throws DataAccessException;
+
+	/**
+	 * Retrieve all <code>Vet</code>s from the data store.
+	 * @return an immutable {@link Vector} of <code>Vet</code>s
+	 */
+	default Vector<Vet> findAll() {
+		return Vector.ofAll(findAllVets());
+	}
 
 	/**
 	 * Retrieve all <code>Vet</code>s from data store in Pages

@@ -18,7 +18,6 @@ package org.springframework.samples.petclinic.service;
 
 import org.springframework.orm.ObjectRetrievalFailureException;
 
-import java.util.Collection;
 import java.util.function.ToIntFunction;
 
 /**
@@ -42,7 +41,7 @@ public abstract class EntityUtils {
 	 * @return the found entity
 	 * @throws ObjectRetrievalFailureException if the entity was not found
 	 */
-	public static <T> T getById(Collection<T> entities, Class<T> entityClass, int entityId, ToIntFunction<T> idOf)
+	public static <T> T getById(Iterable<T> entities, Class<T> entityClass, int entityId, ToIntFunction<T> idOf)
 			throws ObjectRetrievalFailureException {
 		for (T entity : entities) {
 			if (entityClass.isInstance(entity) && idOf.applyAsInt(entity) == entityId) {

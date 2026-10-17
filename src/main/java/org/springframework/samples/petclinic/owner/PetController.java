@@ -61,7 +61,8 @@ class PetController {
 
 	@ModelAttribute("types")
 	public Collection<PetType> populatePetTypes() {
-		return this.types.findPetTypes();
+		// Expose a plain java collection to the view layer; the repository speaks zazr.
+		return this.types.findPetTypes().asJava();
 	}
 
 	@ModelAttribute("owner")

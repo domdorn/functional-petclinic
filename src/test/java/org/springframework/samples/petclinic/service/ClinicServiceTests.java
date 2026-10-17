@@ -23,6 +23,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import java.time.LocalDate;
 import java.util.Collection;
 
+import dev.zazr.collection.Vector;
 import dev.zazr.control.Option;
 import org.springframework.samples.petclinic.owner.OwnerId;
 
@@ -148,7 +149,7 @@ class ClinicServiceTests {
 
 	@Test
 	void shouldFindAllPetTypes() {
-		Collection<PetType> petTypes = this.types.findPetTypes();
+		Vector<PetType> petTypes = this.types.findPetTypes();
 
 		PetType petType1 = EntityUtils.getById(petTypes, PetType.class, 1, pt -> pt.getId().id());
 		assertThat(petType1.getName()).isEqualTo("cat");
@@ -167,7 +168,7 @@ class ClinicServiceTests {
 
 		Pet pet = new Pet();
 		pet.setName("bowser");
-		Collection<PetType> types = this.types.findPetTypes();
+		Vector<PetType> types = this.types.findPetTypes();
 		pet.setType(EntityUtils.getById(types, PetType.class, 2, pt -> pt.getId().id()));
 		pet.setBirthDate(LocalDate.now());
 		owner6.addPet(pet);
@@ -207,7 +208,7 @@ class ClinicServiceTests {
 
 	@Test
 	void shouldFindVets() {
-		Collection<Vet> vets = this.vets.findAll();
+		Vector<Vet> vets = this.vets.findAll();
 
 		Vet vet = EntityUtils.getById(vets, Vet.class, 3, v -> v.getId().id());
 		assertThat(vet.getLastName()).isEqualTo("Douglas");
@@ -261,7 +262,7 @@ class ClinicServiceTests {
 
 		Pet pet1 = new Pet();
 		pet1.setName("DuplicatePetName");
-		Collection<PetType> types = this.types.findPetTypes();
+		Vector<PetType> types = this.types.findPetTypes();
 		pet1.setType(EntityUtils.getById(types, PetType.class, 1, pt -> pt.getId().id()));
 		pet1.setBirthDate(LocalDate.now());
 		owner.addPet(pet1);
@@ -281,7 +282,7 @@ class ClinicServiceTests {
 	@Test
 	@Transactional
 	void shouldAllowSamePetNameForDifferentOwners() {
-		Collection<PetType> types = this.types.findPetTypes();
+		Vector<PetType> types = this.types.findPetTypes();
 		PetType catType = EntityUtils.getById(types, PetType.class, 1, pt -> pt.getId().id());
 
 		Option<Owner> owner1Opt = this.owners.find(new OwnerId(1));
