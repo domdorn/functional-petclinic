@@ -17,33 +17,21 @@ package org.springframework.samples.petclinic.functional;
 
 import java.time.LocalDate;
 
-import org.jspecify.annotations.Nullable;
-
-import dev.zazr.control.Option;
-
-import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 /**
- * Teaches JPA to persist an {@code Option<LocalDate>} field: {@code None} maps to a
- * {@code NULL} column and {@code Some(date)} to the date. Unlike {@code @Id}, regular
- * attributes are allowed to use an {@link AttributeConverter}, so an optional column can
- * be modelled as {@link Option} instead of a nullable {@link LocalDate}.
+ * Maps an {@code Option<LocalDate>} attribute to a nullable {@code DATE} column. The
+ * mapping logic lives in {@link OptionConverter}; this subclass only binds the element
+ * type and registers the converter.
  *
  * <p>
- * Apply with {@code @Convert(converter = OptionLocalDateConverter.class)} on the field.
+ * {@code autoApply = true} means every {@code Option<LocalDate>} attribute in the
+ * persistence unit uses it automatically — no {@code @Convert} on the field — as long as
+ * this converter is visible to the persistence unit (here it lives under the
+ * application's scanned packages; a reusable library would register it via a Hibernate
+ * {@code MetadataBuilderContributor} or a Spring Boot auto-configuration instead).
  */
-@Converter
-public class OptionLocalDateConverter implements AttributeConverter<Option<LocalDate>, LocalDate> {
-
-	@Override
-	public @Nullable LocalDate convertToDatabaseColumn(@Nullable Option<LocalDate> attribute) {
-		return (attribute == null) ? null : attribute.getOrNull();
-	}
-
-	@Override
-	public Option<LocalDate> convertToEntityAttribute(@Nullable LocalDate dbData) {
-		return Option.ofNullable(dbData);
-	}
+@Converter(autoApply = true)
+public class OptionLocalDateConverter extends OptionConverter<LocalDate> {
 
 }

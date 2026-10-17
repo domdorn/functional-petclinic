@@ -25,14 +25,12 @@ import org.hibernate.annotations.Type;
 import org.jspecify.annotations.Nullable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.samples.petclinic.model.NamedEntity;
-import org.springframework.samples.petclinic.functional.OptionLocalDateConverter;
 
 import dev.zazr.collection.Vector;
 import dev.zazr.control.Option;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -63,7 +61,6 @@ public class Pet extends NamedEntity {
 	private @Nullable PetId id;
 
 	@Column
-	@Convert(converter = OptionLocalDateConverter.class)
 	private Option<LocalDate> birthDate = Option.none();
 
 	@ManyToOne
