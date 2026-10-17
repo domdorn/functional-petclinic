@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.samples.petclinic.functional;
+package org.springframework.samples.petclinic.functional.web;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.core.MethodParameter;
+import org.springframework.samples.petclinic.functional.DomainError;
+import org.springframework.samples.petclinic.functional.NotFound;
+import org.springframework.samples.petclinic.functional.ValidationFailed;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
