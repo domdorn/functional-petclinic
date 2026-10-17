@@ -25,12 +25,14 @@ import org.hibernate.annotations.Type;
 import org.jspecify.annotations.Nullable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.samples.petclinic.model.NamedEntity;
+import org.springframework.samples.petclinic.functional.OptionLocalDateConverter;
 
 import dev.zazr.collection.Vector;
 import dev.zazr.control.Option;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -61,8 +63,8 @@ public class Pet extends NamedEntity {
 	private @Nullable PetId id;
 
 	@Column
-	@DateTimeFormat(pattern = "yyyy-MM-dd")
-	private LocalDate birthDate;
+	@Convert(converter = OptionLocalDateConverter.class)
+	private Option<LocalDate> birthDate = Option.none();
 
 	@ManyToOne
 	@JoinColumn(name = "type_id")
@@ -77,10 +79,22 @@ public class Pet extends NamedEntity {
 	private final Set<Visit> visits = new LinkedHashSet<>();
 
 	public void setBirthDate(LocalDate birthDate) {
-		this.birthDate = birthDate;
+		this.birthDate = Option.ofNullable(birthDate);
 	}
 
+	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	public LocalDate getBirthDate() {
+		return this.birthDate.getOrNull();
+	}
+
+	/**
+	 * The birth date as a value that may be absent — a pet's birth date is optional. This
+	 * is the persisted field (JPA maps {@code Option<LocalDate>} via
+	 * {@link OptionLocalDateConverter}); the nullable {@link #getBirthDate()} /
+	 * {@link #setBirthDate(LocalDate)} pair stays for Spring form binding.
+	 * @return an {@link Option} of the birth date
+	 */
+	public Option<LocalDate> birthDate() {
 		return this.birthDate;
 	}
 

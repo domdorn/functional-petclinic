@@ -73,7 +73,7 @@ public final class PetValidations {
 	}
 
 	private static Validation<Violation, Pet> birthDateNotInFuture(Pet pet) {
-		boolean future = pet.getBirthDate() != null && pet.getBirthDate().isAfter(LocalDate.now());
+		boolean future = pet.birthDate().exists(date -> date.isAfter(LocalDate.now()));
 		return future
 				? Validation.invalid(Violation.of("birthDate", "typeMismatch.birthDate", "must not be in the future"))
 				: Validation.valid(pet);

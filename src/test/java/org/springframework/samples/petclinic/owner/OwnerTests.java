@@ -15,6 +15,8 @@
  */
 package org.springframework.samples.petclinic.owner;
 
+import java.time.LocalDate;
+
 import org.junit.jupiter.api.Test;
 
 import dev.zazr.control.Option;
@@ -57,6 +59,22 @@ class OwnerTests {
 		assertThat(new Owner().ownerId()).isEqualTo(Option.none());
 		assertThat(new Pet().petId()).isEqualTo(Option.none());
 		assertThat(new Visit().visitId()).isEqualTo(Option.none());
+	}
+
+	@Test
+	void petBirthDateIsOptional() {
+		Pet pet = new Pet();
+		assertThat(pet.birthDate()).isEqualTo(Option.none());
+
+		LocalDate date = LocalDate.of(2020, 1, 2);
+		pet.setBirthDate(date);
+		assertThat(pet.birthDate()).isEqualTo(Option.some(date));
+		assertThat(pet.getBirthDate()).isEqualTo(date); // nullable facade for form
+														// binding
+
+		pet.setBirthDate(null);
+		assertThat(pet.birthDate().isEmpty()).isTrue();
+		assertThat(pet.getBirthDate()).isNull();
 	}
 
 	@Test
