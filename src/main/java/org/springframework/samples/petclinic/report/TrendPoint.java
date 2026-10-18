@@ -15,6 +15,8 @@
  */
 package org.springframework.samples.petclinic.report;
 
+import com.dominikdorn.zazr.wither.GenerateWithers;
+
 import dev.zazr.control.Option;
 
 /**
@@ -24,11 +26,18 @@ import dev.zazr.control.Option;
  * is modelled, not hidden. {@code changePct} is also absent when the previous month had
  * zero visits (no meaningful percentage).
  *
+ * <p>
+ * The comparison fields are an <em>enrichment</em> of the intrinsic month+count, so
+ * {@link GenerateWithers} gives us {@code withDelta} / {@code withChangePct} to layer them
+ * on as copies (see {@code VisitTrendsService}).
+ *
  * @param month the calendar month formatted as {@code yyyy-MM}
  * @param visits the number of visits that month
  * @param delta visits minus the previous month's visits, or empty for the first month
  * @param changePct the percentage change versus the previous month, or empty when there is
  * no comparable previous month
  */
-public value record TrendPoint(String month, long visits, Option<Long> delta, Option<Double> changePct) {
+@GenerateWithers
+public value record TrendPoint(String month, long visits, Option<Long> delta, Option<Double> changePct)
+		implements TrendPointWith {
 }

@@ -74,20 +74,28 @@ public class VisitTrendsService {
 	}
 
 	private Vector<TrendPoint> trend(Vector<MonthCount> series) {
-		// The first month has no predecessor to compare against.
-		Vector<TrendPoint> head = series.take(1).map(month -> point(month, Option.none()));
+		// The first month is just its bare point — it has no predecessor to compare to.
+		Vector<TrendPoint> head = series.take(1).map(this::bare);
 		// zip the series with itself shifted by one => consecutive (previous, current)
 		// pairs. drop(1) rather than tail() so an empty series stays empty instead of
-		// throwing.
-		Vector<TrendPoint> rest = series.zip(series.drop(1)).map(pair -> point(pair._2(), Option.some(pair._1())));
+		// throwing. Each current month's bare point is then enriched with its comparison.
+		Vector<TrendPoint> rest = series.zip(series.drop(1)).map(pair -> compareToPrevious(pair._1(), pair._2()));
 		return head.appendAll(rest);
 	}
 
-	private TrendPoint point(MonthCount current, Option<MonthCount> previous) {
-		Option<Long> delta = previous.map(prev -> current.visits() - prev.visits());
-		Option<Double> changePct = previous.filter(prev -> prev.visits() != 0)
-			.map(prev -> (current.visits() - prev.visits()) * 100.0 / prev.visits());
-		return new TrendPoint(MONTH.format(current.month()), current.visits(), delta, changePct);
+	/** A month's point before any comparison: the intrinsic month + visit count. */
+	private TrendPoint bare(MonthCount month) {
+		return new TrendPoint(MONTH.format(month.month()), month.visits(), Option.none(), Option.none());
+	}
+
+	/**
+	 * Enrich the current month's bare point with how it compares to the previous month.
+	 */
+	private TrendPoint compareToPrevious(MonthCount previous, MonthCount current) {
+		long delta = current.visits() - previous.visits();
+		Option<Double> changePct = (previous.visits() == 0) ? Option.none()
+				: Option.some(delta * 100.0 / previous.visits());
+		return bare(current).withDelta(Option.some(delta)).withChangePct(changePct);
 	}
 
 	private Vector<TypeCount> byType(Vector<VisitFact> facts) {
