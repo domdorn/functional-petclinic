@@ -27,5 +27,5 @@ import dev.zazr.collection.Vector;
  * @param pets one {@link PetSummary} per pet
  * @param warnings every data-quality violation found, accumulated (not short-circuited)
  */
-public record OwnerReport(String owner, Vector<PetSummary> pets, Vector<Violation> warnings) {
+public value record OwnerReport(String owner, Vector<PetSummary> pets, Vector<Violation> warnings) {
 }

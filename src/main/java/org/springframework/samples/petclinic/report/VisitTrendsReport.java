@@ -28,5 +28,5 @@ import dev.zazr.collection.Vector;
  * @param warnings data-quality notes computed as values (future-dated visits, gaps in the
  * month series) — reusing the same {@link Violation} type as form validation
  */
-public record VisitTrendsReport(Vector<TrendPoint> series, Vector<TypeCount> byType, Vector<Violation> warnings) {
+public value record VisitTrendsReport(Vector<TrendPoint> series, Vector<TypeCount> byType, Vector<Violation> warnings) {
 }
