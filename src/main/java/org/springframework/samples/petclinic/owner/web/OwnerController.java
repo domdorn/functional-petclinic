@@ -194,10 +194,9 @@ public class OwnerController {
 	 * the left when no such owner exists
 	 */
 	@GetMapping("/owners/{ownerId}")
-	public Either<DomainError, ModelAndView> showOwner(@PathVariable("ownerId") int ownerId) {
-		OwnerId id = new OwnerId(ownerId);
-		return this.owners.find(id)
-			.<DomainError>toEither(() -> new OwnerNotFound(id))
+	public Either<DomainError, ModelAndView> showOwner(@PathVariable("ownerId") OwnerId ownerId) {
+		return this.owners.find(ownerId)
+			.<DomainError>toEither(() -> new OwnerNotFound(ownerId))
 			.map(owner -> new ModelAndView("owners/ownerDetails").addObject(owner));
 	}
 
@@ -210,9 +209,8 @@ public class OwnerController {
 	 */
 	@GetMapping(path = "/owners/{ownerId}/summary", produces = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseBody
-	public Either<DomainError, Owner> ownerSummary(@PathVariable("ownerId") int ownerId) {
-		OwnerId id = new OwnerId(ownerId);
-		return this.owners.find(id).<DomainError>toEither(() -> new OwnerNotFound(id));
+	public Either<DomainError, Owner> ownerSummary(@PathVariable("ownerId") OwnerId ownerId) {
+		return this.owners.find(ownerId).<DomainError>toEither(() -> new OwnerNotFound(ownerId));
 	}
 
 	/**
@@ -224,9 +222,10 @@ public class OwnerController {
 	 */
 	@GetMapping(path = "/owners/{ownerId}/report", produces = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseBody
-	public Either<DomainError, OwnerReport> ownerReport(@PathVariable("ownerId") int ownerId) {
-		OwnerId id = new OwnerId(ownerId);
-		return this.owners.find(id).<DomainError>toEither(() -> new OwnerNotFound(id)).map(this.ownerReports::build);
+	public Either<DomainError, OwnerReport> ownerReport(@PathVariable("ownerId") OwnerId ownerId) {
+		return this.owners.find(ownerId)
+			.<DomainError>toEither(() -> new OwnerNotFound(ownerId))
+			.map(this.ownerReports::build);
 	}
 
 }

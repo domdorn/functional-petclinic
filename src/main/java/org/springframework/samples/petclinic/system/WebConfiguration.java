@@ -9,6 +9,10 @@ import com.dominikdorn.zazr.web.OptionPathVariableArgumentResolver;
 import org.springframework.samples.petclinic.functional.web.DomainErrorLeftHandler;
 import org.springframework.samples.petclinic.owner.web.StringToOwnerIdConverter;
 import org.springframework.samples.petclinic.owner.web.StringToPetIdConverter;
+import org.springframework.samples.petclinic.owner.web.StringToPetTypeIdConverter;
+import org.springframework.samples.petclinic.owner.web.StringToVisitIdConverter;
+import org.springframework.samples.petclinic.vet.web.StringToSpecialtyIdConverter;
+import org.springframework.samples.petclinic.vet.web.StringToVetIdConverter;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.servlet.LocaleResolver;
@@ -78,6 +82,10 @@ public class WebConfiguration implements WebMvcConfigurer {
 	public void addFormatters(FormatterRegistry registry) {
 		registry.addConverter(new StringToOwnerIdConverter());
 		registry.addConverter(new StringToPetIdConverter());
+		registry.addConverter(new StringToPetTypeIdConverter());
+		registry.addConverter(new StringToVisitIdConverter());
+		registry.addConverter(new StringToVetIdConverter());
+		registry.addConverter(new StringToSpecialtyIdConverter());
 	}
 
 	/**
